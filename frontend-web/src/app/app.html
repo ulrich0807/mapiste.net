@@ -1,0 +1,32 @@
+<div class="relative flex flex-col min-h-screen bg-[#f4f7f6] font-sans overflow-x-hidden">
+  
+  <div class="absolute top-0 left-0 w-full z-50">
+    <app-navbar></app-navbar>
+
+    <!-- BANNIERE D'INSTALLATION PWA (Discrète) -->
+    <div *ngIf="showInstallBanner" class="fixed bottom-6 left-6 z-[60] bg-white border border-gray-100 rounded-2xl p-4 shadow-xl flex items-center gap-4 max-w-sm animate-fade-in-up">
+      <div class="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center shrink-0">
+        <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+      </div>
+      <div class="flex-1">
+        <h4 class="font-black text-gray-900 text-sm">Installer Macaz</h4>
+        <p class="text-xs text-gray-500 font-medium">L'app sur votre écran !</p>
+      </div>
+      <div class="flex flex-col gap-2 shrink-0">
+        <button (click)="installerPWA()" class="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow-sm">Installer</button>
+      </div>
+      <button (click)="fermerBanner()" class="absolute -top-2 -right-2 bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full p-1.5 shadow-sm transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <main class="flex-1 w-full">
+    <router-outlet></router-outlet>
+  </main>
+
+  <app-footer></app-footer>
+
+  <app-chat-widget></app-chat-widget>
+
+</div>

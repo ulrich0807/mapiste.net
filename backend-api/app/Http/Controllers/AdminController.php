@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Annonce;
 use App\Models\Decouverte;
 use App\Models\User;
+use App\Notifications\PublicationValidee;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -130,6 +131,10 @@ class AdminController extends Controller
         $annonce->est_valide = true;
         $annonce->save();
 
+        if ($annonce->user) {
+            $annonce->user->notify(new PublicationValidee($annonce->titre, 'annonce'));
+        }
+
         return response()->json(['success' => true, 'message' => 'Annonce approuvée et publiée.']);
     }
 
@@ -140,6 +145,10 @@ class AdminController extends Controller
         $decouverte = Decouverte::findOrFail($id);
         $decouverte->est_valide = true;
         $decouverte->save();
+
+        if ($decouverte->user) {
+            $decouverte->user->notify(new PublicationValidee($decouverte->nom, 'decouverte'));
+        }
 
         return response()->json(['success' => true, 'message' => 'Établissement approuvé et publié.']);
     }

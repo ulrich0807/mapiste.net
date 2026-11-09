@@ -24,7 +24,7 @@ class DecouverteController extends Controller
             $query->where('commune', 'like', '%' . $request->commune . '%');
         }
 
-        $decouvertes = $query->latest()->get();
+        $decouvertes = $query->latest()->paginate(15);
 
         return response()->json([
             'success' => true,

@@ -1,0 +1,76 @@
+<div class="chat-container">
+  <!-- Sidebar : Liste des conversations -->
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <h2>Discussions</h2>
+    </div>
+    
+    <div class="contacts-list">
+      <div *ngIf="conversations.length === 0" class="no-conversations">
+        Aucune discussion pour le moment.
+      </div>
+      
+      <div *ngFor="let conv of conversations" 
+           class="contact-item" 
+           [class.active]="selectedContact?.interlocuteur.id === conv.interlocuteur.id"
+           (click)="selectContact(conv)">
+           
+        <div class="avatar">
+          <img [src]="conv.interlocuteur.avatar || 'https://ui-avatars.com/api/?name=' + conv.interlocuteur.name + '&background=random'" alt="Avatar">
+          <span *ngIf="conv.non_lus > 0" class="badge">{{ conv.non_lus }}</span>
+        </div>
+        
+        <div class="contact-info">
+          <h4>{{ conv.interlocuteur.name }}</h4>
+          <p class="last-message">{{ conv.dernier_message }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone Principale : Messages -->
+  <div class="chat-main">
+    <ng-container *ngIf="selectedContact; else noSelection">
+      
+      <!-- Header avec l'interlocuteur actuel -->
+      <div class="chat-header">
+        <img [src]="selectedContact.interlocuteur.avatar || 'https://ui-avatars.com/api/?name=' + selectedContact.interlocuteur.name + '&background=random'" alt="Avatar">
+        <h3>{{ selectedContact.interlocuteur.name }}</h3>
+      </div>
+
+      <!-- Corps des messages -->
+      <div class="chat-messages" id="chat-messages">
+        <div *ngFor="let msg of messages" 
+             class="message-wrapper"
+             [class.sent]="msg.sender_id === userId"
+             [class.received]="msg.sender_id !== userId">
+             
+          <div class="message-bubble">
+            <p>{{ msg.contenu }}</p>
+            <span class="message-time">{{ msg.created_at | date:'HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input pour envoyer un message -->
+      <div class="chat-input-area">
+        <input type="text" 
+               [(ngModel)]="newMessage" 
+               (keyup.enter)="sendMessage()" 
+               placeholder="Écrivez un message..." />
+        <button (click)="sendMessage()" [disabled]="!newMessage.trim()">
+          Envoyer
+        </button>
+      </div>
+      
+    </ng-container>
+    
+    <ng-template #noSelection>
+      <div class="no-selection">
+        <img src="assets/illustrations/chat-placeholder.svg" alt="Chat" onerror="this.style.display='none'">
+        <h3>Vos messages</h3>
+        <p>Sélectionnez une conversation pour commencer à discuter avec un propriétaire ou un locataire.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

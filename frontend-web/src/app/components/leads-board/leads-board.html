@@ -1,0 +1,36 @@
+<div class="container mx-auto p-4">
+  <h2 class="text-2xl font-bold mb-4">Tableau de bord des Demandes (Leads)</h2>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let lead of leads" class="bg-white p-4 rounded-lg shadow-md border border-gray-200">
+      <h3 class="text-xl font-semibold text-gray-800">{{ lead.titre }}</h3>
+      <p class="text-gray-600 mt-2 line-clamp-3">{{ lead.description }}</p>
+      
+      <div class="mt-4 flex items-center justify-between">
+        <span class="text-sm text-gray-500">
+          <i class="fas fa-map-marker-alt mr-1"></i> {{ lead.localisation || 'Non précisé' }}
+        </span>
+        <span class="font-bold text-blue-600">
+          {{ lead.budget ? lead.budget + ' FCFA' : 'À débattre' }}
+        </span>
+      </div>
+
+      <div class="mt-4 p-3 bg-gray-50 rounded text-center">
+        <p class="font-mono text-lg font-bold" [ngClass]="{'text-green-600': lead.has_purchased, 'text-gray-400': !lead.has_purchased}">
+          {{ lead.telephone }}
+        </p>
+      </div>
+
+      <button *ngIf="!lead.has_purchased" (click)="acheterLead(lead)" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
+        Débloquer le contact (1000 FCFA)
+      </button>
+      <button *ngIf="lead.has_purchased" class="mt-4 w-full bg-green-500 text-white font-bold py-2 px-4 rounded cursor-default">
+        Contact débloqué
+      </button>
+    </div>
+  </div>
+  
+  <div *ngIf="leads.length === 0" class="text-center text-gray-500 mt-8">
+    Aucune demande client disponible pour le moment.
+  </div>
+</div>

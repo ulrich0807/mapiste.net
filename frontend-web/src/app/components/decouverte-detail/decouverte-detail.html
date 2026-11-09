@@ -1,0 +1,93 @@
+<div class="min-h-screen bg-[#f4f7f6] pt-32 pb-24 px-4 md:px-12">
+  <div class="max-w-6xl mx-auto">
+    
+    <!-- Bouton Retour -->
+    <a routerLink="/abidjan" class="inline-flex items-center text-sm font-bold text-gray-500 hover:text-blue-600 mb-8 transition-colors">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+      Retour à l'annuaire
+    </a>
+
+    <!-- Chargement -->
+    <div *ngIf="chargement" class="text-center py-20">
+      <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-600 border-t-transparent mb-4"></div>
+    </div>
+
+    <!-- Erreur -->
+    <div *ngIf="erreur" class="bg-rose-50 p-8 rounded-2xl text-center">
+      <p class="text-rose-500 font-bold">{{ erreur }}</p>
+    </div>
+
+    <!-- Contenu -->
+    <div *ngIf="decouverte && !chargement" class="animate-fade-in-up">
+      
+      <!-- En-tête -->
+      <div class="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100 mb-8">
+        <div class="h-[300px] md:h-[400px] relative bg-gray-900">
+          <img [src]="imagePrincipale" class="w-full h-full object-cover opacity-90">
+          <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
+          
+          <div class="absolute bottom-0 left-0 w-full p-8 md:p-12 text-white">
+            <span class="inline-block bg-blue-600 text-white text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-lg mb-4 shadow-md">
+              {{ decouverte.categorie }}
+            </span>
+            <h1 class="text-4xl md:text-5xl font-black mb-2">{{ decouverte.nom }}</h1>
+            <p class="text-lg font-medium opacity-90 flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+              {{ decouverte.commune }}, Abidjan
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Colonne de gauche : Description & Galerie -->
+        <div class="lg:col-span-2 space-y-8">
+          
+          <div class="bg-white p-8 md:p-10 rounded-[32px] shadow-sm border border-gray-100">
+            <h2 class="text-2xl font-black text-gray-900 mb-6">À propos</h2>
+            <p class="text-gray-500 leading-relaxed whitespace-pre-wrap">{{ decouverte.description }}</p>
+          </div>
+
+          <div class="bg-white p-8 md:p-10 rounded-[32px] shadow-sm border border-gray-100" *ngIf="images.length > 1">
+            <h2 class="text-xl font-black text-gray-900 mb-6">Galerie Photos</h2>
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-4">
+              <button *ngFor="let url of images" (click)="changerImage(url)" 
+                      [ngClass]="imagePrincipale === url ? 'ring-4 ring-blue-600 ring-offset-2' : 'hover:opacity-80'"
+                      class="relative aspect-square rounded-xl overflow-hidden transition-all focus:outline-none">
+                <img [src]="url" class="w-full h-full object-cover">
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Colonne de droite : Carte & Contact -->
+        <div class="space-y-8">
+          
+          <!-- Carte de localisation -->
+          <div class="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100">
+            <h3 class="text-lg font-black text-gray-900 mb-4">Localisation</h3>
+            <!-- Conteneur de la carte Leaflet -->
+            <div id="map-lieu" class="w-full h-[300px] rounded-[20px] z-0 border border-gray-100"></div>
+            <p class="text-sm font-bold text-gray-500 mt-4 text-center">Commune de {{ decouverte.commune }}</p>
+          </div>
+
+          <!-- Contact -->
+          <div class="bg-white p-8 rounded-[32px] shadow-sm border border-gray-100">
+            <h3 class="text-lg font-black text-gray-900 mb-6">Contact</h3>
+            
+            <a [href]="'tel:' + decouverte.telephone" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-md flex justify-center items-center gap-3 text-lg">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+              {{ decouverte.telephone }}
+            </a>
+            <p class="text-xs text-center text-gray-400 font-bold mt-4">Mentionnez que vous venez de Macaz !</p>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

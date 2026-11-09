@@ -1,0 +1,14 @@
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Retire les styles par défaut des bulles Leaflet pour garder le design épuré */
+.leaflet-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.leaflet-tooltip-top:before {
+  border-top-color: transparent !important;
+}

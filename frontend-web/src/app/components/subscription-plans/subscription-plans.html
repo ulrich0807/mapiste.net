@@ -1,0 +1,41 @@
+<div class="container mx-auto p-4 py-8">
+  <div class="text-center mb-12">
+    <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+      Abonnements pour les Agences Immobilières
+    </h2>
+    <p class="mt-4 text-xl text-gray-500">
+      Choisissez la formule qui correspond à votre volume d'activité.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+    <div *ngFor="let plan of plans" class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col hover:shadow-2xl transition-shadow duration-300">
+      <div class="p-8 flex-1">
+        <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ plan.name }}</h3>
+        <p class="text-gray-500 mb-6">{{ plan.desc }}</p>
+        
+        <div class="mb-6">
+          <span class="text-4xl font-extrabold text-gray-900">{{ plan.price | number }}</span>
+          <span class="text-xl font-medium text-gray-500"> FCFA/mois</span>
+        </div>
+
+        <ul class="space-y-4 mb-8">
+          <li *ngFor="let feature of plan.features" class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p class="ml-3 text-base text-gray-700">{{ feature }}</p>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="p-8 bg-gray-50 mt-auto">
+        <button (click)="souscrire(plan)" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md">
+          Souscrire à {{ plan.name }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

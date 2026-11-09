@@ -1,0 +1,158 @@
+<div class="min-h-screen bg-[#f4f7f6] pt-32 pb-16 px-4 flex items-center justify-center">
+  <div class="w-full max-w-2xl bg-white p-8 md:p-10 rounded-[32px] shadow-2xl border border-gray-50">
+    
+    <!-- En-tête dynamique -->
+    <div class="text-center mb-10">
+      <h1 class="text-3xl font-black text-gray-900">
+        {{ modeEdition ? 'Modifiez votre annonce' : 'Confiez-nous votre bien' }}
+      </h1>
+      <p class="text-gray-500 mt-2">
+        {{ modeEdition ? 'Mettez à jour les informations de votre logement.' : 'Remplissez le formulaire ci-dessous. Nos experts étudieront votre annonce pour une publication immédiate.' }}
+      </p>
+    </div>
+
+    <!-- Alertes -->
+    <div *ngIf="erreurMessage" class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl text-center mb-6 font-bold text-sm">
+      {{ erreurMessage }}
+    </div>
+
+    <div *ngIf="formSoumis" class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-6 rounded-2xl text-center mb-6">
+      <h3 class="font-bold text-lg">
+        {{ modeEdition ? 'Annonce modifiée avec succès !' : 'Demande reçue avec succès !' }}
+      </h3>
+      <p class="text-sm mt-1 text-emerald-600">
+        {{ modeEdition ? 'Vos modifications sont en attente de validation.' : 'Notre équipe examine les détails et vous contactera sous 24 heures.' }}
+      </p>
+      <a routerLink="/gerer" class="inline-block mt-4 text-emerald-700 font-bold underline">Retour à mes annonces</a>
+    </div>
+
+    <!-- Spinner de chargement (Mode édition) -->
+    <div *ngIf="chargementInitial" class="text-center py-10">
+      <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-orange-500 border-t-transparent mb-4"></div>
+      <p class="text-gray-500 font-bold">Chargement de votre annonce...</p>
+    </div>
+
+    <!-- Formulaire (Caché pendant le chargement ou si soumis) -->
+    <form *ngIf="!formSoumis && !chargementInitial" (submit)="soumettreAnnonce($event)" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col">
+          <label class="text-sm font-bold text-gray-800 mb-2">Titre de l'annonce</label>
+          <input type="text" [(ngModel)]="annonceData.titre" name="titre" required placeholder="Ex: Duplex de haut standing avec piscine" class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all">
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm font-bold text-gray-800 mb-2">Prix désiré (FCFA / mois)</label>
+          <input type="number" [(ngModel)]="annonceData.prix" name="prix" required placeholder="Ex: 450000" class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="flex flex-col">
+          <label class="text-sm font-bold text-gray-800 mb-2">Commune</label>
+          <select [(ngModel)]="annonceData.commune" name="commune" required class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-orange-500 cursor-pointer">
+            <option value="Cocody">Cocody</option>
+            <option value="Marcory">Marcory</option>
+            <option value="Yopougon">Yopougon</option>
+            <option value="Commerce">Commerce (Bouaké)</option>
+          </select>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-sm font-bold text-gray-800 mb-2">Type de contrat</label>
+          <select [(ngModel)]="annonceData.type_contrat" name="type_contrat" required class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-orange-500 cursor-pointer">
+            <option value="location">Mettre en location</option>
+            <option value="vente">Mettre en vente</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="flex flex-col">
+        <label class="text-sm font-bold text-gray-800 mb-2">Description complète du bien</label>
+        <textarea [(ngModel)]="annonceData.description" name="description" rows="4" required placeholder="Décrivez les atouts de votre logement (sécurité, garage, commodités...)" class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all"></textarea>
+      </div>
+
+      <!-- Filtres Avancés (Commodités & Proximité) -->
+      <div class="bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+        <h3 class="text-sm font-bold text-gray-800 mb-4">Équipements et Proximité</h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <label class="flex items-center space-x-3 cursor-pointer group">
+            <div class="relative flex items-center justify-center">
+              <input type="checkbox" [(ngModel)]="amenities['eau']" name="eau" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 checked:bg-orange-500 checked:border-orange-500 transition-colors">
+              <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition-colors">Eau courante</span>
+          </label>
+
+          <label class="flex items-center space-x-3 cursor-pointer group">
+            <div class="relative flex items-center justify-center">
+              <input type="checkbox" [(ngModel)]="amenities['electricite']" name="electricite" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 checked:bg-orange-500 checked:border-orange-500 transition-colors">
+              <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition-colors">Électricité</span>
+          </label>
+
+          <label class="flex items-center space-x-3 cursor-pointer group">
+            <div class="relative flex items-center justify-center">
+              <input type="checkbox" [(ngModel)]="amenities['ecoles']" name="ecoles" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 checked:bg-orange-500 checked:border-orange-500 transition-colors">
+              <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition-colors">Proche écoles</span>
+          </label>
+
+          <label class="flex items-center space-x-3 cursor-pointer group">
+            <div class="relative flex items-center justify-center">
+              <input type="checkbox" [(ngModel)]="amenities['transports']" name="transports" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 checked:bg-orange-500 checked:border-orange-500 transition-colors">
+              <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition-colors">Proche transports</span>
+          </label>
+
+          <label class="flex items-center space-x-3 cursor-pointer group">
+            <div class="relative flex items-center justify-center">
+              <input type="checkbox" [(ngModel)]="amenities['travail']" name="travail" class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-orange-500/50 checked:bg-orange-500 checked:border-orange-500 transition-colors">
+              <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <span class="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition-colors">Proche lieux de travail</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex flex-col space-y-4">
+        <label class="text-lg font-extrabold text-gray-900">Photos par pièces</label>
+        <p class="text-sm text-gray-500 mb-4">Classez vos photos pour permettre aux visiteurs de mieux se projeter dans votre bien.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div *ngFor="let cat of categoriesPhotos" class="bg-gray-50/50 border border-gray-200 rounded-[24px] p-5">
+            <div class="flex justify-between items-center mb-4">
+              <span class="font-bold text-gray-900">{{ cat.nom }}</span>
+              <span class="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded">{{ cat.previews.length }} photo(s)</span>
+            </div>
+
+            <div class="relative w-full border-2 border-dashed border-gray-300 hover:border-orange-400 rounded-xl p-4 text-center transition-colors bg-white group cursor-pointer mb-4">
+              <input type="file" multiple accept="image/*" (change)="onFileSelected($event, cat.code)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+              <div class="flex flex-col items-center justify-center text-gray-400 group-hover:text-orange-500 transition-colors">
+                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span class="text-xs font-bold">Ajouter</span>
+              </div>
+            </div>
+
+            <div *ngIf="cat.previews.length > 0" class="grid grid-cols-3 gap-2 animate-fade-in-up">
+              <div *ngFor="let preview of cat.previews; let i = index" class="relative group rounded-lg overflow-hidden aspect-square border border-gray-100 shadow-sm">
+                <img [src]="preview" class="w-full h-full object-cover">
+                <button type="button" (click)="retirerPhoto(cat.code, i)" class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition-transform transform hover:scale-110">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 flex justify-end">
+        <button type="submit" [disabled]="chargement" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-tl-3xl rounded-br-3xl rounded-tr-md rounded-bl-md shadow-lg transition-transform transform hover:scale-[1.02] w-full md:w-auto text-base disabled:opacity-50">
+          <span *ngIf="chargement">En cours...</span>
+          <span *ngIf="!chargement">{{ modeEdition ? 'Mettre à jour l\'annonce' : 'Soumettre la demande' }}</span>
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

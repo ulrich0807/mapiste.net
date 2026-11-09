@@ -1,0 +1,38 @@
+<div class="min-h-screen bg-gray-900 flex items-center justify-center relative overflow-hidden pt-24 pb-12 px-4">
+  
+  <img src="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=80" class="absolute inset-0 w-full h-full object-cover opacity-20 transform scale-105" alt="Background">
+  <div class="absolute inset-0 bg-gradient-to-b from-gray-900/60 to-gray-900/95"></div>
+
+  <div class="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/10 p-8 sm:p-10 rounded-[32px] shadow-2xl animate-fade-in-up">
+    
+    <!-- Bouton de retour -->
+    <a routerLink="/auth" class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-orange-500 mb-8 transition-colors">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+      Retour à la connexion
+    </a>
+
+    <h2 class="text-2xl font-black text-white mb-2">Mot de passe oublié</h2>
+    <p class="text-gray-400 text-sm mb-8">Entrez votre adresse email pour recevoir un lien de réinitialisation sécurisé.</p>
+
+    <!-- Message de succès (Apparaît après soumission) -->
+    <div *ngIf="emailEnvoye" class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-sm mb-6 flex items-start animate-fade-in-up">
+      <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      Si ce compte existe, un email contenant les instructions vient d'être envoyé à cette adresse.
+    </div>
+
+    <!-- Le Formulaire -->
+    <form *ngIf="!emailEnvoye" (submit)="onSubmit($event)" class="space-y-5">
+      <div>
+        <label class="block text-sm font-medium text-gray-300 mb-2">Adresse Email</label>
+        <input type="email" required placeholder="vous@exemple.ci" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all">
+      </div>
+
+      <div class="pt-4">
+        <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-tl-2xl rounded-br-2xl rounded-tr-md rounded-bl-md shadow-lg transition-transform transform hover:scale-[1.02]">
+          Envoyer le lien
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

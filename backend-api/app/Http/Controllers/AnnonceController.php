@@ -33,19 +33,36 @@ class AnnonceController extends Controller
             $query->where('prix', '<=', $request->prix);
         }
 
-        // Filtre par nombre de pièces (recherche textuelle sur le titre)
+        // Filtre par type de logement
+        if ($request->has('type_logement') && !empty($request->type_logement)) {
+            $query->where('type_logement', $request->type_logement);
+        }
+
+        // Filtres par nombre de pièces (recherche textuelle sur le titre)
         if ($request->has('pieces') && !empty($request->pieces)) {
             $query->where('titre', 'like', '%' . $request->pieces . '%');
         }
 
-        $annonces = $query->latest()->get();
+        // Filtres avancés (eau, electricite, ecoles, etc.)
+        if ($request->has('filtres_avances')) {
+            $filtres = json_decode($request->filtres_avances, true);
+            if (is_array($filtres)) {
+                foreach ($filtres as $filtre) {
+                    $query->whereJsonContains('equipements', $filtre);
+                }
+            }
+        }
+
+        $annonces = $query->orderByRaw('CASE WHEN is_premium = 1 AND boosted_until > NOW() THEN 1 ELSE 0 END DESC')
+                          ->latest()
+                          ->paginate(15);
 
         // Calcul dynamique des compteurs de statistiques globaux pour l'accueil
         $stats = [
             'en_location' => Annonce::where('type_contrat', 'location')->count(),
             'en_vente' => Annonce::where('type_contrat', 'vente')->count(),
-            'vendeurs' => 27, 
-            'visiteurs' => 1450
+            'vendeurs' => \App\Models\User::count(), 
+            'visiteurs' => 1450 // À dynamiser plus tard avec un vrai tracker
         ];
 
         // Agrégation par commune pour alimenter la liste latérale et la carte Leaflet
@@ -77,6 +94,11 @@ class AnnonceController extends Controller
             'prix' => 'required|numeric',
             'commune' => 'required|string',
             'type_contrat' => 'required|string',
+            'images_salon.*' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'images_chambre.*' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'images_cuisine.*' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'images_salle_de_bain.*' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'images_exterieur.*' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
         ]);
 
         if ($validator->fails()) {
@@ -103,9 +125,13 @@ class AnnonceController extends Controller
             'titre' => $request->titre,
             'description' => $request->description,
             'prix' => $request->prix,
+            'caution' => $request->caution,
+            'avances' => $request->avances,
             'commune' => $request->commune,
             'ville' => $request->input('ville', 'Abidjan'),
             'type_contrat' => $request->type_contrat,
+            'type_logement' => $request->input('type_logement', 'appartement'),
+            'equipements' => $request->has('equipements') ? json_decode($request->equipements, true) : null,
             'images' => json_encode($imagesStructure),
         ]);
 
@@ -170,6 +196,19 @@ class AnnonceController extends Controller
             return response()->json(['success' => false, 'message' => 'Annonce introuvable ou accès refusé.'], 404);
         }
 
+        $validator = Validator::make($request->all(), [
+            'titre' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'prix' => 'nullable|numeric',
+            'commune' => 'nullable|string',
+            'type_contrat' => 'nullable|string',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 400);
+        }
+
         // 2. On met à jour les champs textes
         $annonce->titre = $request->titre ?? $annonce->titre;
         $annonce->description = $request->description ?? $annonce->description;
@@ -197,6 +236,60 @@ class AnnonceController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Annonce modifiée avec succès. Elle est en attente de validation par un administrateur.',
+            'data' => $annonce
+        ]);
+    }
+
+    // Basculer l'état du favori
+    public function toggleFavori(Request $request, $id)
+    {
+        $user = $request->user();
+        $annonce = Annonce::find($id);
+
+        if (!$annonce) {
+            return response()->json(['success' => false, 'message' => 'Annonce introuvable'], 404);
+        }
+
+        if ($user->favoris()->where('annonce_id', $id)->exists()) {
+            $user->favoris()->detach($id);
+            $is_favori = false;
+        } else {
+            $user->favoris()->attach($id);
+            $is_favori = true;
+        }
+
+        return response()->json([
+            'success' => true,
+            'is_favori' => $is_favori
+        ]);
+    }
+
+    // Lister les favoris de l'utilisateur
+    public function mesFavoris(Request $request)
+    {
+        $favoris = $request->user()->favoris()->with('user')->latest()->get();
+        return response()->json([
+            'success' => true,
+            'data' => $favoris
+        ]);
+    }
+
+    // Activer l'offre Premium (Simulée)
+    public function boost(Request $request, $id)
+    {
+        $annonce = Annonce::where('user_id', $request->user()->id)->find($id);
+
+        if (!$annonce) {
+            return response()->json(['success' => false, 'message' => 'Annonce introuvable ou accès refusé.'], 404);
+        }
+
+        $annonce->is_premium = true;
+        $annonce->boosted_until = now()->addDays(7);
+        $annonce->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Félicitations ! Votre annonce est maintenant "À la une".',
             'data' => $annonce
         ]);
     }
