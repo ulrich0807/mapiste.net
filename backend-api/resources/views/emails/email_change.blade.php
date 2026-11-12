@@ -7,8 +7,8 @@
     <p>Bonjour {{ $userName }},</p>
     <p>Pour confirmer le changement de votre adresse e-mail sur Macaz, saisissez ce code dans votre profil :</p>
     <p style="font-size:30px;font-weight:bold;letter-spacing:6px;color:#c2410c">{{ $code }}</p>
-    <p>Ce code expire dans 15 minutes et ne peut �tre utilis� qu'une fois.</p>
-    <p>Votre adresse actuelle reste active jusqu'� la confirmation. Si vous n'�tes pas � l'origine de cette demande, ignorez cet e-mail.</p>
+    <p>Ce code expire dans 15 minutes et ne peut être utilisé qu’une fois.</p>
+    <p>Votre adresse actuelle reste active jusqu’à la confirmation. Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail.</p>
   </main>
 </body>
 </html>

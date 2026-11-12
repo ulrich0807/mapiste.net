@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // <-- Tr�s important pour ngModel
+import { FormsModule } from '@angular/forms'; // <-- Très important pour ngModel
 import { ActivatedRoute } from '@angular/router'; // <-- Pour lire ?id=27
 import { AnnonceService } from '../../services/annonce';
 
@@ -23,13 +23,13 @@ export class Vendre implements OnInit, OnDestroy {
   chargement = false;
   erreurMessage = '';
 
-  // --- GESTION DU MODE �DITION ---
+  // --- GESTION DU MODE ÉDITION ---
   modeEdition = false;
   idEdition: number | null = null;
-  chargementInitial = false; // Pour afficher un "Chargement..." au d�but
+  chargementInitial = false; // Pour afficher un "Chargement..." au début
   private ville = 'Abidjan';
 
-  // Mod�le de donn�es pour lier le HTML au TypeScript
+  // Modèle de données pour lier le HTML au TypeScript
   annonceData = {
     titre: '',
     prix: '',
@@ -38,7 +38,7 @@ export class Vendre implements OnInit, OnDestroy {
     description: ''
   };
 
-  // Commodit�s et �quipements avanc�s
+  // Commodités et équipements avancés
   amenities: { [key: string]: boolean } = {
     eau: false,
     electricite: false,
@@ -48,11 +48,11 @@ export class Vendre implements OnInit, OnDestroy {
   };
 
   categoriesPhotos: CategoriePhoto[] = [
-    { nom: 'Salon & S�jour', code: 'salon', files: [], previews: [] },
+    { nom: 'Salon & Séjour', code: 'salon', files: [], previews: [] },
     { nom: 'Chambres', code: 'chambre', files: [], previews: [] },
     { nom: 'Cuisine', code: 'cuisine', files: [], previews: [] },
     { nom: 'Salles de bain', code: 'salle_de_bain', files: [], previews: [] },
-    { nom: 'Ext�rieur / Fa�ade', code: 'exterieur', files: [], previews: [] }
+    { nom: 'Extérieur / Façade', code: 'exterieur', files: [], previews: [] }
   ];
 
   constructor(
@@ -61,7 +61,7 @@ export class Vendre implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // 1. On �coute l'URL pour voir si on est en modification
+    // 1. On écoute l'URL pour voir si on est en modification
     this.route.queryParams.subscribe((params: any) => {
       if (params['id']) {
         this.modeEdition = true;
@@ -77,7 +77,7 @@ export class Vendre implements OnInit, OnDestroy {
     }));
   }
 
-  // 2. On r�cup�re les donn�es et on pr�-remplit le formulaire
+  // 2. On récupère les données et on pré-remplit le formulaire
   chargerDonneesAnnonce(id: number) {
     this.chargementInitial = true;
     this.annonceService.getAnnonce(id).subscribe({
@@ -102,7 +102,7 @@ export class Vendre implements OnInit, OnDestroy {
             });
           }
 
-          // On essaie de pr�charger les anciennes images
+          // On essaie de précharger les anciennes images
           if (data.images) {
             try {
               const parsedImages = JSON.parse(data.images);
@@ -120,7 +120,7 @@ export class Vendre implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         this.chargementInitial = false;
-        this.erreurMessage = "Erreur lors du chargement des donn�es de l'annonce.";
+        this.erreurMessage = "Erreur lors du chargement des données de l'annonce.";
       }
     });
   }
@@ -158,7 +158,7 @@ export class Vendre implements OnInit, OnDestroy {
     this.chargement = true;
     this.erreurMessage = '';
 
-    // V�rification propre avec notre mod�le
+    // Vérification propre avec notre modèle
     if (!this.annonceData.titre || !this.annonceData.prix || !this.annonceData.commune || !this.annonceData.type_contrat || !this.annonceData.description) {
       this.chargement = false;
       this.erreurMessage = 'Veuillez remplir tous les champs obligatoires du formulaire.';
@@ -187,7 +187,7 @@ export class Vendre implements OnInit, OnDestroy {
       });
     });
 
-    // 4. Choix dynamique : Mettre � jour (si id existe) OU Cr�er
+    // 4. Choix dynamique : Mettre à jour (si id existe) OU Créer
     const requete$ = this.modeEdition && this.idEdition 
       ? this.annonceService.updateAnnonce(this.idEdition, formData)
       : this.annonceService.creerAnnonce(formData);
@@ -196,14 +196,14 @@ export class Vendre implements OnInit, OnDestroy {
       next: (res: any) => {
         this.chargement = false;
         if (res.success) {
-          this.formSoumis = true; // Affiche ton message de succ�s "Publi�e !" ou "Modifi�e !"
+          this.formSoumis = true; // Affiche ton message de succès "Publiée !" ou "Modifiée !"
         } else {
           this.erreurMessage = res.message || 'Une erreur est survenue.';
         }
       },
       error: (err: any) => {
         this.chargement = false;
-        this.erreurMessage = 'Impossible d\'enregistrer. V�rifiez votre connexion.';
+        this.erreurMessage = 'Impossible d\'enregistrer. Vérifiez votre connexion.';
       }
     });
   }

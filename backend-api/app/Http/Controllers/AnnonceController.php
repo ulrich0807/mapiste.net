@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class AnnonceController extends Controller
 {
-    // R�cup�rer et filtrer dynamiquement les annonces immobili�res
+    // Récupérer et filtrer dynamiquement les annonces immobilières
     public function index(Request $request)
     {
         $query = Annonce::where('est_valide', true);
@@ -38,12 +38,12 @@ class AnnonceController extends Controller
             $query->where('type_logement', $request->type_logement);
         }
 
-        // Filtres par nombre de pi�ces (recherche textuelle sur le titre)
+        // Filtres par nombre de pièces (recherche textuelle sur le titre)
         if ($request->has('pieces') && !empty($request->pieces)) {
             $query->where('titre', 'like', '%' . $request->pieces . '%');
         }
 
-        // Filtres avanc�s (eau, electricite, ecoles, etc.)
+        // Filtres avancés (eau, electricite, ecoles, etc.)
         if ($request->has('filtres_avances')) {
             $filtres = json_decode($request->filtres_avances, true);
             if (is_array($filtres)) {
@@ -62,10 +62,10 @@ class AnnonceController extends Controller
             'en_location' => Annonce::where('est_valide', true)->where('type_contrat', 'location')->count(),
             'en_vente' => Annonce::where('est_valide', true)->where('type_contrat', 'vente')->count(),
             'vendeurs' => \App\Models\User::count(), 
-            'visiteurs' => 1450 // � dynamiser plus tard avec un vrai tracker
+            'visiteurs' => 1450 // À dynamiser plus tard avec un vrai tracker
         ];
 
-        // Agr�gation par commune pour alimenter la liste lat�rale et la carte Leaflet
+        // Agrégation par commune pour alimenter la liste latérale et la carte Leaflet
         $communesStats = Annonce::where('est_valide', true)->select('commune', DB::raw('count(*) as total_logements'))
             ->groupBy('commune')
             ->get()
@@ -85,7 +85,7 @@ class AnnonceController extends Controller
         ]);
     }
 
- // Enregistrer l'annonce avec l'utilisateur connect�
+ // Enregistrer l'annonce avec l'utilisateur connecté
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -121,7 +121,7 @@ class AnnonceController extends Controller
         }
 
         $annonce = Annonce::create([
-            'user_id' => $request->user()->id, // <-- On associe l'ID de l'utilisateur connect� !
+            'user_id' => $request->user()->id, // <-- On associe l'ID de l'utilisateur connecté !
             'titre' => $request->titre,
             'description' => $request->description,
             'prix' => $request->prix,
@@ -137,12 +137,12 @@ class AnnonceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Votre annonce a �t� publi�e avec succ�s !',
+            'message' => 'Votre annonce a été publiée avec succès !',
             'data' => $annonce
         ], 201);
     }
 
-    // R�cup�rer uniquement les annonces de l'utilisateur connect�
+    // Récupérer uniquement les annonces de l'utilisateur connecté
     public function myAnnonces(Request $request)
     {
         $annonces = Annonce::where('user_id', $request->user()->id)->latest()->get();
@@ -153,7 +153,7 @@ class AnnonceController extends Controller
         ]);
     }
 
-    // Supprimer une annonce appartenant � l'utilisateur connect�
+    // Supprimer une annonce appartenant à l'utilisateur connecté
     public function destroy(Request $request, $id)
     {
         $annonce = Annonce::where('user_id', $request->user()->id)->find($id);
@@ -169,10 +169,10 @@ class AnnonceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'L\'annonce a bien �t� supprim�e.'
+            'message' => 'L\'annonce a bien été supprimée.'
         ]);
     }
-    // Afficher les d�tails d'une annonce sp�cifique
+    // Afficher les détails d'une annonce spécifique
     public function show($id)
     {
         $annonce = Annonce::find($id);
@@ -186,14 +186,14 @@ class AnnonceController extends Controller
             'data' => $annonce
         ]);
     }
-    // (PROT�G�) Modifier une annonce existante
+    // (PROTÉGÉ) Modifier une annonce existante
     public function update(Request $request, $id)
     {
-        // 1. On cherche l'annonce, et on v�rifie qu'elle appartient bien � l'utilisateur connect�
+        // 1. On cherche l'annonce, et on vérifie qu'elle appartient bien à l'utilisateur connecté
         $annonce = Annonce::where('user_id', $request->user()->id)->find($id);
 
         if (!$annonce) {
-            return response()->json(['success' => false, 'message' => 'Annonce introuvable ou acc�s refus�.'], 404);
+            return response()->json(['success' => false, 'message' => 'Annonce introuvable ou accès refusé.'], 404);
         }
 
         if ($request->has('equipements') && is_string($request->equipements)) {
@@ -231,7 +231,7 @@ class AnnonceController extends Controller
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 400);
         }
 
-        // 2. On met � jour les champs textes
+        // 2. On met à jour les champs textes
         $annonce->titre = $request->titre ?? $annonce->titre;
         $annonce->description = $request->description ?? $annonce->description;
         $annonce->prix = $request->prix ?? $annonce->prix;
@@ -264,19 +264,19 @@ class AnnonceController extends Controller
         }
         $annonce->images = json_encode($images);
 
-        // 4. LA R�GLE D'OR : On repasse l'annonce en "Attente de validation"
+        // 4. LA RÈGLE D'OR : On repasse l'annonce en "Attente de validation"
         $annonce->est_valide = false;
         
         $annonce->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Annonce modifi�e avec succ�s. Elle est en attente de validation par un administrateur.',
+            'message' => 'Annonce modifiée avec succès. Elle est en attente de validation par un administrateur.',
             'data' => $annonce
         ]);
     }
 
-    // Basculer l'�tat du favori
+    // Basculer l'état du favori
     public function toggleFavori(Request $request, $id)
     {
         $user = $request->user();

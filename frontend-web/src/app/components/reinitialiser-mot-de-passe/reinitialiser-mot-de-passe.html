@@ -1,16 +1,16 @@
 <main class="min-h-screen bg-gray-900 flex items-center justify-center pt-24 pb-12 px-4">
   <section class="w-full max-w-md bg-white/10 border border-white/10 p-8 rounded-3xl text-white">
     <h1 class="text-2xl font-bold mb-3">Nouveau mot de passe</h1>
-    <p *ngIf="termine" role="status" class="text-emerald-300 mb-6">Votre mot de passe a �t� modifi�. Reconnectez-vous avec votre nouveau mot de passe.</p>
+    <p *ngIf="termine" role="status" class="text-emerald-300 mb-6">Votre mot de passe a été modifié. Reconnectez-vous avec votre nouveau mot de passe.</p>
     <a *ngIf="termine" routerLink="/auth" class="inline-block bg-orange-500 px-5 py-3 rounded-xl font-bold">Se connecter</a>
     <p *ngIf="erreur" role="alert" class="text-red-300 mb-5">{{ erreur }}</p>
     <form *ngIf="!termine" (submit)="onSubmit($event)" class="space-y-5">
       <label class="block" for="new-password">Nouveau mot de passe</label>
       <input id="new-password" type="password" name="password" [(ngModel)]="password" minlength="8" maxlength="128" required autocomplete="new-password" class="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3">
-      <p class="text-sm text-gray-300">Au moins 8 caract�res.</p>
+      <p class="text-sm text-gray-300">Au moins 8 caractères.</p>
       <label class="block" for="confirm-password">Confirmer le mot de passe</label>
       <input id="confirm-password" type="password" name="confirmation" [(ngModel)]="confirmation" minlength="8" maxlength="128" required autocomplete="new-password" class="w-full bg-gray-800 border border-gray-600 rounded-xl px-4 py-3">
-      <button type="submit" [disabled]="chargement" class="w-full bg-orange-500 disabled:opacity-50 rounded-xl px-4 py-3 font-bold">{{ chargement ? 'Enregistrement.' : 'Enregistrer le mot de passe' }}</button>
+      <button type="submit" [disabled]="chargement" class="w-full bg-orange-500 disabled:opacity-50 rounded-xl px-4 py-3 font-bold">{{ chargement ? 'Enregistrement…' : 'Enregistrer le mot de passe' }}</button>
       <a routerLink="/mot-de-passe-oublie" class="block text-orange-300">Demander un nouveau lien</a>
     </form>
   </section>

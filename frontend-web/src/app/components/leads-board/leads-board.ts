@@ -52,7 +52,7 @@ export class LeadsBoardComponent implements OnInit {
     if (lead.can_view_contact || !lead.id) return;
     const token = localStorage.getItem('macaz_token');
     if (!token) {
-      alert('Vous devez �tre connect� pour d�bloquer un contact.');
+      alert('Vous devez être connecté pour débloquer un contact.');
       this.router.navigate(['/auth']);
       return;
     }
@@ -66,12 +66,12 @@ export class LeadsBoardComponent implements OnInit {
     this.paymentService.initiatePayment(paymentData).subscribe({
       next: (res) => {
         // Rediriger vers l'URL de paiement ou ouvrir une modale
-        console.log('Paiement initi�', res);
+        console.log('Paiement initié', res);
         alert('Redirection vers la page de paiement : ' + res.payment_url);
       },
       error: (err) => {
         if (err.status === 401) {
-          alert('Votre session a expir�. Veuillez vous reconnecter.');
+          alert('Votre session a expiré. Veuillez vous reconnecter.');
           this.router.navigate(['/auth']);
         } else {
           alert(err.error?.message || 'Erreur lors de l\'initiation du paiement');

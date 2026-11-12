@@ -11,7 +11,7 @@ export class AnnonceService {
 
   constructor(private http: HttpClient) {}
 
-  // 1. R�cup�rer TOUTES les annonces publiques (Pour la Carte, la page Louer, etc.)
+  // 1. Récupérer TOUTES les annonces publiques (Pour la Carte, la page Louer, etc.)
   getAnnonces(filtres?: any, page: number = 1): Observable<any> {
     let params = new HttpParams().set('page', page.toString());
 
@@ -26,7 +26,7 @@ export class AnnonceService {
     return this.http.get<any>(this.apiUrl, { params });
   }
 
-  // 2. Cr�er une nouvelle annonce (Prot�g� par Token)
+  // 2. Créer une nouvelle annonce (Protégé par Token)
   creerAnnonce(formData: FormData): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     const headers = new HttpHeaders({
@@ -36,7 +36,7 @@ export class AnnonceService {
     return this.http.post<any>(this.apiUrl, formData, { headers });
   }
 
-  // 3. R�cup�rer uniquement les annonces de l'utilisateur (Pour la page G�rer)
+  // 3. Récupérer uniquement les annonces de l'utilisateur (Pour la page Gérer)
   getMesAnnonces(): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     const headers = new HttpHeaders({
@@ -56,7 +56,7 @@ export class AnnonceService {
     });
     return this.http.delete<any>(`${this.apiUrl}/${id}`, { headers });
   }
-  // R�cup�rer une annonce par son ID
+  // Récupérer une annonce par son ID
   getAnnonceById(id: string): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     return this.http.get<any>(`${this.apiUrl}/${id}`, {
@@ -64,7 +64,7 @@ export class AnnonceService {
     });
   }
 
-  // R�cup�rer les donn�es dynamiques de la page d'accueil
+  // Récupérer les données dynamiques de la page d'accueil
   getHomeData(): Observable<any> {
     // Si ton URL de base est ${environment.apiUrl}/annonces, on la remplace pour cibler /home-data
     const homeUrl = this.apiUrl.replace('/annonces', '/home-data');
@@ -73,7 +73,7 @@ export class AnnonceService {
 
   // Dans AnnonceService
 
-  // Mettre � jour une annonce immobili�re
+  // Mettre à jour une annonce immobilière
   updateAnnonce(id: number, data: any): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
@@ -81,15 +81,15 @@ export class AnnonceService {
     return this.http.post<any>(`${this.apiUrl}/${id}/update`, data, { headers });
   }
 
-  // Mettre � jour un �tablissement (Annuaire)
+  // Mettre à jour un établissement (Annuaire)
   updateDecouverte(id: number, data: any): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
-    // Si l'URL de base de l'annuaire est diff�rente, adapte-la (ex: /api/decouvertes)
+    // Si l'URL de base de l'annuaire est différente, adapte-la (ex: /api/decouvertes)
     return this.http.post<any>(`${environment.apiUrl}/decouvertes/${id}/update`, data, { headers });
   }
 
-  // R�cup�rer les d�tails d'une seule annonce
+  // Récupérer les détails d'une seule annonce
   getAnnonce(id: number): Observable<any> {
     return this.getAnnonceById(String(id));
   }

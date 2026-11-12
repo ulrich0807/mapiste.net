@@ -103,12 +103,12 @@ export class Profil implements OnInit, OnDestroy {
           this.currentPassword = '';
           this.emailCode = '';
           this.emailChangeError = '';
-          Swal.fire('Succ�s', res.message || 'Profil mis � jour avec succ�s !', 'success');
+          Swal.fire('Succès', res.message || 'Profil mis à jour avec succès !', 'success');
         }
       },
       error: (err) => {
         this.isLoading = false;
-        Swal.fire('Erreur', err.error?.message || 'Impossible de mettre � jour le profil.', 'error');
+        Swal.fire('Erreur', err.error?.message || 'Impossible de mettre à jour le profil.', 'error');
       }
     });
   }
@@ -116,7 +116,7 @@ export class Profil implements OnInit, OnDestroy {
   confirmEmail() {
     if (this.emailChangeBusy || this.isLoading) return;
     if (!/^[0-9]{6}$/.test(this.emailCode)) {
-      this.emailChangeError = 'Saisissez le code � six chiffres re�u par e-mail.';
+      this.emailChangeError = 'Saisissez le code à six chiffres reçu par e-mail.';
       return;
     }
     this.emailChangeBusy = true;
@@ -125,12 +125,12 @@ export class Profil implements OnInit, OnDestroy {
       next: (response) => {
         this.emailChangeBusy = false;
         this.emailCode = '';
-        void Swal.fire('Adresse confirm�e', response.message, 'success');
+        void Swal.fire('Adresse confirmée', response.message, 'success');
         void this.router.navigate(['/auth']);
       },
       error: (err) => {
         this.emailChangeBusy = false;
-        this.emailChangeError = err.error?.message || 'Confirmation impossible. R�essayez.';
+        this.emailChangeError = err.error?.message || 'Confirmation impossible. Réessayez.';
       }
     });
   }
@@ -146,7 +146,7 @@ export class Profil implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.emailChangeBusy = false;
-        this.emailChangeError = err.error?.message || 'Annulation impossible. R�essayez.';
+        this.emailChangeError = err.error?.message || 'Annulation impossible. Réessayez.';
       }
     });
   }

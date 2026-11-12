@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class DecouverteController extends Controller
 {
-    // 1. (PUBLIC) R�cup�rer toutes les publications (Maquis, Artisans, etc.)
+    // 1. (PUBLIC) Récupérer toutes les publications (Maquis, Artisans, etc.)
     public function index(Request $request)
     {
  $query = Decouverte::where('est_valide', true);
 
-        // Filtre par cat�gorie (ex: restaurant, artisan)
+        // Filtre par catégorie (ex: restaurant, artisan)
         if ($request->has('categorie') && !empty($request->categorie)) {
             $query->where('categorie', $request->categorie);
         }
@@ -32,7 +32,7 @@ class DecouverteController extends Controller
         ]);
     }
 
-    // 2. (PUBLIC) Afficher les d�tails d'un lieu/artisan sp�cifique
+    // 2. (PUBLIC) Afficher les détails d'un lieu/artisan spécifique
     public function show($id)
     {
         $decouverte = Decouverte::find($id);
@@ -47,7 +47,7 @@ class DecouverteController extends Controller
         ]);
     }
 
-    // 3. (PROT�G�) Cr�er une nouvelle publication
+    // 3. (PROTÉGÉ) Créer une nouvelle publication
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -68,7 +68,7 @@ class DecouverteController extends Controller
         $urlsImages = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                // On range les images dans un dossier sp�cifique "decouvertes"
+                // On range les images dans un dossier spécifique "decouvertes"
                 $path = $image->store('decouvertes', 'public');
                 $urlsImages[] = asset('storage/' . $path);
             }
@@ -86,12 +86,12 @@ class DecouverteController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Votre �tablissement/service a �t� publi� avec succ�s !',
+            'message' => 'Votre établissement/service a été publié avec succès !',
             'data' => $decouverte
         ], 201);
     }
 
-    // 4. (PROT�G�) R�cup�rer uniquement les publications de l'utilisateur connect�
+    // 4. (PROTÉGÉ) Récupérer uniquement les publications de l'utilisateur connecté
     public function myDecouvertes(Request $request)
     {
         $decouvertes = Decouverte::where('user_id', $request->user()->id)->latest()->get();
@@ -102,7 +102,7 @@ class DecouverteController extends Controller
         ]);
     }
 
-    // 5. (PROT�G�) Supprimer sa publication
+    // 5. (PROTÉGÉ) Supprimer sa publication
     public function destroy(Request $request, $id)
     {
         $decouverte = Decouverte::where('user_id', $request->user()->id)->find($id);
@@ -110,7 +110,7 @@ class DecouverteController extends Controller
         if (!$decouverte) {
             return response()->json([
                 'success' => false,
-                'message' => 'Publication introuvable ou acc�s refus�.'
+                'message' => 'Publication introuvable ou accès refusé.'
             ], 404);
         }
 
@@ -118,17 +118,17 @@ class DecouverteController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Publication supprim�e avec succ�s.'
+            'message' => 'Publication supprimée avec succès.'
         ]);
     }
 
-    // (PROT�G�) Modifier un �tablissement/artisan existant
+    // (PROTÉGÉ) Modifier un établissement/artisan existant
     public function update(Request $request, $id)
     {
         $decouverte = Decouverte::where('user_id', $request->user()->id)->find($id);
 
         if (!$decouverte) {
-            return response()->json(['success' => false, 'message' => 'Publication introuvable ou acc�s refus�.'], 404);
+            return response()->json(['success' => false, 'message' => 'Publication introuvable ou accès refusé.'], 404);
         }
 
         $request->validate([
@@ -163,7 +163,7 @@ class DecouverteController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => '�tablissement modifi�. Il est en attente de validation.',
+            'message' => 'Établissement modifié. Il est en attente de validation.',
             'data' => $decouverte
         ]);
     }

@@ -19,7 +19,7 @@ export class AdminService {
     });
   }
 
-  // 1. R�cup�rer toutes les donn�es du dashboard
+  // 1. Récupérer toutes les données du dashboard
   getDashboardData(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/dashboard`, { headers: this.getHeaders() });
   }
@@ -29,24 +29,24 @@ export class AdminService {
     return this.http.delete<any>(`${this.apiUrl}/users/${id}`, { headers: this.getHeaders() });
   }
 
-  // 3. Supprimer une annonce immobili�re
+  // 3. Supprimer une annonce immobilière
   deleteAnnonce(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/annonces/${id}`, { headers: this.getHeaders() });
   }
 
-  // 4. Supprimer une fiche annuaire (d�couverte)
+  // 4. Supprimer une fiche annuaire (découverte)
   deleteDecouverte(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/decouvertes/${id}`, { headers: this.getHeaders() });
   }
 
-  // --- NOUVELLES ACTIONS DE MOD�RATION ---
+  // --- NOUVELLES ACTIONS DE MODÉRATION ---
 
-  // Promouvoir/R�trograder un admin
+  // Promouvoir/Rétrograder un admin
   toggleAdmin(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/users/${id}/toggle-admin`, {}, { headers: this.getHeaders() });
   }
 
-  // Suspendre/R�activer un compte
+  // Suspendre/Réactiver un compte
   toggleActive(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/users/${id}/toggle-active`, {}, { headers: this.getHeaders() });
   }

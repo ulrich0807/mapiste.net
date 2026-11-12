@@ -11,7 +11,7 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // 1. R�cup�ration des statistiques r�elles
+        // 1. Récupération des statistiques réelles
         $statistiques = [
             'total_biens' => Annonce::where('est_valide', true)->count(),
             'total_artisans' => Decouverte::where('est_valide', true)->count(),

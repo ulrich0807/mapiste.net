@@ -10,12 +10,12 @@ import { tap } from 'rxjs/operators';
 export class AuthService {
   private apiUrl = `${environment.apiUrl}`;
   
-  // Un BehaviorSubject permet de diffuser l'�tat de connexion � toute l'application en temps r�el
+  // Un BehaviorSubject permet de diffuser l'état de connexion à toute l'application en temps réel
   private userSubject = new BehaviorSubject<any>(null);
   public user$ = this.userSubject.asObservable();
 
   constructor(private http: HttpClient) {
-    // Recharger l'utilisateur si un token existe au d�marrage
+    // Recharger l'utilisateur si un token existe au démarrage
     const user = localStorage.getItem('macaz_user');
     if (user) {
       try {
@@ -129,7 +129,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/user/update`, formData, { headers }).pipe(
       tap(res => {
         if (res.success) {
-          // Mettre � jour l'utilisateur local
+          // Mettre à jour l'utilisateur local
           localStorage.setItem('macaz_user', JSON.stringify(res.user));
           this.userSubject.next(res.user);
         }

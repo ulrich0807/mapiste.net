@@ -62,7 +62,7 @@ class EmailChangeController extends Controller
             $this->clearPending($user);
         });
 
-        return response()->json(['success' => true, 'message' => 'Changement d'adresse annule.']);
+        return response()->json(['success' => true, 'message' => 'Changement d’adresse annule.']);
     }
 
     private function clearPending(User $user): void

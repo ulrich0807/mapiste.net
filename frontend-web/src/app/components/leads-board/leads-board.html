@@ -1,9 +1,9 @@
 <div class="container mx-auto p-4">
   <h2 class="text-2xl font-bold mb-4">Tableau de bord des Demandes (Leads)</h2>
-  <p *ngIf="chargement" role="status" class="mb-4 text-gray-600">Chargement des demandes.</p>
+  <p *ngIf="chargement" role="status" class="mb-4 text-gray-600">Chargement des demandes…</p>
   <div *ngIf="erreur" role="alert" class="mb-4 text-red-700">
     {{ erreur }}
-    <button type="button" (click)="loadLeads()" class="ml-2 underline">R�essayer</button>
+    <button type="button" (click)="loadLeads()" class="ml-2 underline">Réessayer</button>
   </div>
   
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -13,24 +13,24 @@
       
       <div class="mt-4 flex items-center justify-between">
         <span class="text-sm text-gray-500">
-          <i class="fas fa-map-marker-alt mr-1"></i> {{ lead.localisation || 'Non pr�cis�' }}
+          <i class="fas fa-map-marker-alt mr-1"></i> {{ lead.localisation || 'Non précisé' }}
         </span>
         <span class="font-bold text-blue-600">
-          {{ lead.budget ? lead.budget + ' FCFA' : '� d�battre' }}
+          {{ lead.budget ? lead.budget + ' FCFA' : 'À débattre' }}
         </span>
       </div>
 
       <div class="mt-4 p-3 bg-gray-50 rounded text-center">
         <p class="font-mono text-lg font-bold" [ngClass]="{'text-green-600': lead.can_view_contact, 'text-gray-400': !lead.can_view_contact}">
-          {{ lead.telephone || 'Contact r�serv�' }}
+          {{ lead.telephone || 'Contact réservé' }}
         </p>
       </div>
 
       <button *ngIf="!lead.can_view_contact" (click)="acheterLead(lead)" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
-        D�bloquer le contact (1000 FCFA)
+        Débloquer le contact (1000 FCFA)
       </button>
       <p *ngIf="lead.can_view_contact" class="mt-4 w-full bg-green-500 text-white text-center font-bold py-2 px-4 rounded">
-        {{ lead.is_owner ? 'Votre demande' : 'Contact d�bloqu�' }}
+        {{ lead.is_owner ? 'Votre demande' : 'Contact débloqué' }}
       </p>
     </div>
   </div>
@@ -39,8 +39,8 @@
     Aucune demande client disponible pour le moment.
   </div>
   <nav *ngIf="total > 0" aria-label="Pagination des demandes" class="mt-6 flex items-center justify-center gap-4">
-    <button type="button" (click)="loadLeads(currentPage - 1)" [disabled]="chargement || currentPage <= 1" class="px-4 py-2 border rounded disabled:opacity-40">Pr�c�dent</button>
-    <span aria-live="polite">Page {{ currentPage }} / {{ lastPage }} � {{ total }} demandes</span>
+    <button type="button" (click)="loadLeads(currentPage - 1)" [disabled]="chargement || currentPage <= 1" class="px-4 py-2 border rounded disabled:opacity-40">Précédent</button>
+    <span aria-live="polite">Page {{ currentPage }} / {{ lastPage }} · {{ total }} demandes</span>
     <button type="button" (click)="loadLeads(currentPage + 1)" [disabled]="chargement || currentPage >= lastPage" class="px-4 py-2 border rounded disabled:opacity-40">Suivant</button>
   </nav>
 </div>

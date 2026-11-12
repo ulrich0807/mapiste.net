@@ -26,7 +26,7 @@ jobs:
           tools: composer:v2
           coverage: none
       - run: composer install --no-interaction --prefer-dist --no-progress
-      - name: Pr�parer la configuration de test
+      - name: Préparer la configuration de test
         run: |
           cp .env.example .env
           php artisan key:generate --no-interaction

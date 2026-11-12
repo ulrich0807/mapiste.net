@@ -11,7 +11,7 @@ export class DecouverteService {
 
   constructor(private http: HttpClient) {}
 
-  // 1. R�cup�rer l'annuaire (Maquis, Artisans...)
+  // 1. Récupérer l'annuaire (Maquis, Artisans...)
   getDecouvertes(filtres?: any, page: number = 1): Observable<any> {
     let params = new HttpParams().set('page', page.toString());
     if (filtres) {
@@ -24,7 +24,7 @@ export class DecouverteService {
     return this.http.get<any>(this.apiUrl, { params });
   }
 
-  // 2. Cr�er une nouvelle fiche �tablissement/artisan
+  // 2. Créer une nouvelle fiche établissement/artisan
   creerDecouverte(formData: FormData): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     const headers = new HttpHeaders({
@@ -34,7 +34,7 @@ export class DecouverteService {
     return this.http.post<any>(this.apiUrl, formData, { headers });
   }
 
-  // 3. R�cup�rer les fiches de l'utilisateur connect�
+  // 3. Récupérer les fiches de l'utilisateur connecté
   getMesDecouvertes(): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     const headers = new HttpHeaders({
@@ -55,7 +55,7 @@ export class DecouverteService {
     return this.http.delete<any>(`${this.apiUrl}/${id}`, { headers });
   }
 
-  // R�cup�rer une fiche sp�cifique par son ID
+  // Récupérer une fiche spécifique par son ID
   getDecouverteById(id: string): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     return this.http.get<any>(`${this.apiUrl}/${id}`, {
@@ -63,7 +63,7 @@ export class DecouverteService {
     });
   }
 
-  // Mettre � jour un �tablissement (Annuaire)
+  // Mettre à jour un établissement (Annuaire)
   updateDecouverte(id: number, data: any): Observable<any> {
     const token = localStorage.getItem('macaz_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });

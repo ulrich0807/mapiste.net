@@ -86,7 +86,7 @@ class AuthController extends Controller
         }
 
         if (is_null($user->email_verified_at)) {
-            // Renvoyer un code s'il est expir� ou manquant
+            // Renvoyer un code s'il est expiré ou manquant
             if (is_null($user->otp_code) || Carbon::now()->greaterThan($user->otp_expires_at)) {
                 $user->otp_code = (string) random_int(100000, 999999);
                 $user->otp_expires_at = Carbon::now()->addMinutes(15);
@@ -103,7 +103,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Connexion r�ussie !',
+            'message' => 'Connexion réussie !',
             'token' => $token,
             'user' => $user
         ]);
@@ -131,14 +131,14 @@ class AuthController extends Controller
         }
 
         if (!$user->otp_code || !hash_equals((string) $user->otp_code, $request->otp_code)) {
-            return response()->json(['success' => false, 'message' => 'Code de v�rification incorrect.'], 400);
+            return response()->json(['success' => false, 'message' => 'Code de vérification incorrect.'], 400);
         }
 
         if (!$user->otp_expires_at || Carbon::now()->greaterThan($user->otp_expires_at)) {
-            return response()->json(['success' => false, 'message' => 'Le code de v�rification a expir�.'], 400);
+            return response()->json(['success' => false, 'message' => 'Le code de vérification a expiré.'], 400);
         }
 
-        // Succ�s
+        // Succès
         $user->email_verified_at = Carbon::now();
         $user->otp_code = null;
         $user->otp_expires_at = null;
@@ -148,7 +148,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Compte v�rifi� avec succ�s.',
+            'message' => 'Compte vérifié avec succès.',
             'token' => $token,
             'user' => $user
         ]);
@@ -171,7 +171,7 @@ class AuthController extends Controller
         }
 
         if (!is_null($user->email_verified_at)) {
-            return response()->json(['success' => false, 'message' => 'Compte d�j� v�rifi�.'], 400);
+            return response()->json(['success' => false, 'message' => 'Compte déjà vérifié.'], 400);
         }
 
         if (!$user->is_active) {
@@ -186,22 +186,22 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Un nouveau code a �t� envoy� � votre adresse email.'
+            'message' => 'Un nouveau code a été envoyé à votre adresse email.'
         ]);
     }
 
-    // D�connexion (R�vocation du token)
+    // Déconnexion (Révocation du token)
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'D�connexion r�ussie.'
+            'message' => 'Déconnexion réussie.'
         ]);
     }
 
-    // Mise � jour du profil (Informations + Avatar)
+    // Mise à jour du profil (Informations + Avatar)
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -224,7 +224,7 @@ class AuthController extends Controller
         if ($changingEmail && (!$request->filled('current_password') || !Hash::check($request->current_password, $user->password))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Votre mot de passe actuel est necessaire pour changer d'adresse e-mail.',
+                'message' => 'Votre mot de passe actuel est necessaire pour changer d’adresse e-mail.',
             ], 422);
         }
 
@@ -255,7 +255,7 @@ class AuthController extends Controller
             'success' => true,
             'message' => $changingEmail
                 ? 'Profil enregistre. Confirmez le code envoye a votre nouvelle adresse.'
-                : 'Profil mis � jour avec succ�s.',
+                : 'Profil mis à jour avec succès.',
             'email_verification_required' => (bool) $user->pending_email,
             'user' => $this->profileData($user),
         ])->header('Cache-Control', 'private, no-store');

@@ -23,8 +23,8 @@ export const routes: Routes = [
   { path: '', component: MapView },
   { path: 'annonce/:id', component: AnnonceDetail },
   { path: 'tarifs', component: Tarifs },
-  { path: 'louer', component: Louer },    // <-- Connect� !
-// ---> On ajoute le "canActivate" ici pour s�curiser la page
+  { path: 'louer', component: Louer },    // <-- Connecté !
+// ---> On ajoute le "canActivate" ici pour sécuriser la page
   { path: 'vendre', component: Vendre, canActivate: [authGuard] }, 
   { path: 'gerer', component: Gerer, canActivate: [authGuard] },
   { path: 'abidjan', component: Abidjan },

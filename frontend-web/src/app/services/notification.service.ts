@@ -27,7 +27,7 @@ export interface Notification {
 export class NotificationService {
   private apiUrl = `${environment.apiUrl}/notifications`;
   
-  // Signaux pour la r�activit� dans les composants
+  // Signaux pour la réactivité dans les composants
   unreadCount = signal<number>(0);
   notifications = signal<Notification[]>([]);
 
@@ -50,7 +50,7 @@ export class NotificationService {
   markAsRead(id: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${id}/read`, {}, { headers: this.getHeaders() }).pipe(
       tap(() => {
-        // Rafra�chir la liste apr�s lecture
+        // Rafraîchir la liste après lecture
         this.fetchUnread().subscribe();
       })
     );
