@@ -9,6 +9,11 @@ class Lead extends Model
 {
     use HasFactory;
 
+    // Les coordonnees sont exposees uniquement par LeadResource apres autorisation.
+    protected $hidden = ['telephone'];
+
+    protected $casts = ['is_active' => 'boolean'];
+
     protected $fillable = [
         'user_id',
         'titre',

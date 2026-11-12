@@ -1,5 +1,10 @@
 <div class="container mx-auto p-4">
   <h2 class="text-2xl font-bold mb-4">Tableau de bord des Demandes (Leads)</h2>
+  <p *ngIf="chargement" role="status" class="mb-4 text-gray-600">Chargement des demandes.</p>
+  <div *ngIf="erreur" role="alert" class="mb-4 text-red-700">
+    {{ erreur }}
+    <button type="button" (click)="loadLeads()" class="ml-2 underline">R�essayer</button>
+  </div>
   
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <div *ngFor="let lead of leads" class="bg-white p-4 rounded-lg shadow-md border border-gray-200">
@@ -8,29 +13,34 @@
       
       <div class="mt-4 flex items-center justify-between">
         <span class="text-sm text-gray-500">
-          <i class="fas fa-map-marker-alt mr-1"></i> {{ lead.localisation || 'Non précisé' }}
+          <i class="fas fa-map-marker-alt mr-1"></i> {{ lead.localisation || 'Non pr�cis�' }}
         </span>
         <span class="font-bold text-blue-600">
-          {{ lead.budget ? lead.budget + ' FCFA' : 'À débattre' }}
+          {{ lead.budget ? lead.budget + ' FCFA' : '� d�battre' }}
         </span>
       </div>
 
       <div class="mt-4 p-3 bg-gray-50 rounded text-center">
-        <p class="font-mono text-lg font-bold" [ngClass]="{'text-green-600': lead.has_purchased, 'text-gray-400': !lead.has_purchased}">
-          {{ lead.telephone }}
+        <p class="font-mono text-lg font-bold" [ngClass]="{'text-green-600': lead.can_view_contact, 'text-gray-400': !lead.can_view_contact}">
+          {{ lead.telephone || 'Contact r�serv�' }}
         </p>
       </div>
 
-      <button *ngIf="!lead.has_purchased" (click)="acheterLead(lead)" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
-        Débloquer le contact (1000 FCFA)
+      <button *ngIf="!lead.can_view_contact" (click)="acheterLead(lead)" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
+        D�bloquer le contact (1000 FCFA)
       </button>
-      <button *ngIf="lead.has_purchased" class="mt-4 w-full bg-green-500 text-white font-bold py-2 px-4 rounded cursor-default">
-        Contact débloqué
-      </button>
+      <p *ngIf="lead.can_view_contact" class="mt-4 w-full bg-green-500 text-white text-center font-bold py-2 px-4 rounded">
+        {{ lead.is_owner ? 'Votre demande' : 'Contact d�bloqu�' }}
+      </p>
     </div>
   </div>
   
-  <div *ngIf="leads.length === 0" class="text-center text-gray-500 mt-8">
+  <div *ngIf="!chargement && !erreur && leads.length === 0" class="text-center text-gray-500 mt-8">
     Aucune demande client disponible pour le moment.
   </div>
+  <nav *ngIf="total > 0" aria-label="Pagination des demandes" class="mt-6 flex items-center justify-center gap-4">
+    <button type="button" (click)="loadLeads(currentPage - 1)" [disabled]="chargement || currentPage <= 1" class="px-4 py-2 border rounded disabled:opacity-40">Pr�c�dent</button>
+    <span aria-live="polite">Page {{ currentPage }} / {{ lastPage }} � {{ total }} demandes</span>
+    <button type="button" (click)="loadLeads(currentPage + 1)" [disabled]="chargement || currentPage >= lastPage" class="px-4 py-2 border rounded disabled:opacity-40">Suivant</button>
+  </nav>
 </div>

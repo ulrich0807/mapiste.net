@@ -12,6 +12,17 @@ use Carbon\Carbon;
 
 class AuthController extends Controller
 {
+    public function profile(Request $request)
+    {
+        return response()->json($this->profileData($request->user()))
+            ->header('Cache-Control', 'private, no-store');
+    }
+
+    private function profileData(User $user): array
+    {
+        return array_merge($user->toArray(), ['pending_email' => $user->pending_email]);
+    }
+
     // Inscription d'un nouvel utilisateur
     public function register(Request $request)
     {
@@ -19,7 +30,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|unique:users',
-            'role' => 'nullable|in:locataire,proprietaire,admin',
+            'role' => 'nullable|in:locataire,proprietaire',
             'password' => 'required|string|min:6',
         ]);
 
@@ -27,7 +38,7 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 400);
         }
 
-        $otpCode = rand(100000, 999999);
+        $otpCode = (string) random_int(100000, 999999);
 
         $user = User::create([
             'name' => $request->name,
@@ -70,10 +81,14 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if (!$user->is_active) {
+            return response()->json(['success' => false, 'message' => 'Votre compte est suspendu.'], 403);
+        }
+
         if (is_null($user->email_verified_at)) {
-            // Renvoyer un code s'il est expiré ou manquant
+            // Renvoyer un code s'il est expir� ou manquant
             if (is_null($user->otp_code) || Carbon::now()->greaterThan($user->otp_expires_at)) {
-                $user->otp_code = rand(100000, 999999);
+                $user->otp_code = (string) random_int(100000, 999999);
                 $user->otp_expires_at = Carbon::now()->addMinutes(15);
                 $user->save();
                 Mail::to($user->email)->send(new VerifyOtpMail($user->otp_code, $user->name));
@@ -88,7 +103,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Connexion réussie !',
+            'message' => 'Connexion r�ussie !',
             'token' => $token,
             'user' => $user
         ]);
@@ -98,7 +113,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'otp_code' => 'required|string',
+            'otp_code' => 'required|string|regex:/^[0-9]{6}$/',
         ]);
 
         if ($validator->fails()) {
@@ -111,15 +126,19 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Utilisateur introuvable.'], 404);
         }
 
-        if ($user->otp_code !== $request->otp_code) {
-            return response()->json(['success' => false, 'message' => 'Code de vérification incorrect.'], 400);
+        if (!$user->is_active) {
+            return response()->json(['success' => false, 'message' => 'Votre compte est suspendu.'], 403);
         }
 
-        if (Carbon::now()->greaterThan($user->otp_expires_at)) {
-            return response()->json(['success' => false, 'message' => 'Le code de vérification a expiré.'], 400);
+        if (!$user->otp_code || !hash_equals((string) $user->otp_code, $request->otp_code)) {
+            return response()->json(['success' => false, 'message' => 'Code de v�rification incorrect.'], 400);
         }
 
-        // Succès
+        if (!$user->otp_expires_at || Carbon::now()->greaterThan($user->otp_expires_at)) {
+            return response()->json(['success' => false, 'message' => 'Le code de v�rification a expir�.'], 400);
+        }
+
+        // Succ�s
         $user->email_verified_at = Carbon::now();
         $user->otp_code = null;
         $user->otp_expires_at = null;
@@ -129,7 +148,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Compte vérifié avec succès.',
+            'message' => 'Compte v�rifi� avec succ�s.',
             'token' => $token,
             'user' => $user
         ]);
@@ -152,10 +171,14 @@ class AuthController extends Controller
         }
 
         if (!is_null($user->email_verified_at)) {
-            return response()->json(['success' => false, 'message' => 'Compte déjà vérifié.'], 400);
+            return response()->json(['success' => false, 'message' => 'Compte d�j� v�rifi�.'], 400);
         }
 
-        $user->otp_code = rand(100000, 999999);
+        if (!$user->is_active) {
+            return response()->json(['success' => false, 'message' => 'Votre compte est suspendu.'], 403);
+        }
+
+        $user->otp_code = (string) random_int(100000, 999999);
         $user->otp_expires_at = Carbon::now()->addMinutes(15);
         $user->save();
 
@@ -163,30 +186,33 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Un nouveau code a été envoyé à votre adresse email.'
+            'message' => 'Un nouveau code a �t� envoy� � votre adresse email.'
         ]);
     }
 
-    // Déconnexion (Révocation du token)
+    // D�connexion (R�vocation du token)
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'Déconnexion réussie.'
+            'message' => 'D�connexion r�ussie.'
         ]);
     }
 
-    // Mise à jour du profil (Informations + Avatar)
+    // Mise � jour du profil (Informations + Avatar)
     public function updateProfile(Request $request)
     {
         $user = $request->user();
 
         $validator = Validator::make($request->all(), [
-            'name' => 'nullable|string|max:255',
-            'email' => 'nullable|string|email|max:255|unique:users,email,'.$user->id,
-            'phone' => 'nullable|string|unique:users,phone,'.$user->id,
+            'name' => 'sometimes|required|string|max:255',
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,'.$user->id,
+            'phone' => 'nullable|string|max:30|unique:users,phone,'.$user->id,
+            'current_password' => 'nullable|string|max:128',
+            'role' => 'prohibited',
+            'is_admin' => 'prohibited',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
@@ -194,8 +220,24 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 400);
         }
 
+        $changingEmail = $request->filled('email') && strcasecmp($request->email, $user->email) !== 0;
+        if ($changingEmail && (!$request->filled('current_password') || !Hash::check($request->current_password, $user->password))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Votre mot de passe actuel est necessaire pour changer d'adresse e-mail.',
+            ], 422);
+        }
+
+        $code = null;
+        if ($changingEmail) {
+            $code = (string) random_int(100000, 999999);
+            $user->pending_email = $request->email;
+            $user->email_change_code_hash = Hash::make($code);
+            $user->email_change_expires_at = now()->addMinutes(15);
+            $user->email_change_attempts = 0;
+        }
+
         if ($request->has('name')) $user->name = $request->name;
-        if ($request->has('email')) $user->email = $request->email;
         if ($request->has('phone')) $user->phone = $request->phone;
 
         if ($request->hasFile('avatar')) {
@@ -205,10 +247,17 @@ class AuthController extends Controller
 
         $user->save();
 
+        if ($code !== null) {
+            Mail::to($user->pending_email)->send(new \App\Mail\EmailChangeCode($code, $user->name));
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Profil mis à jour avec succès.',
-            'user' => $user
-        ]);
+            'message' => $changingEmail
+                ? 'Profil enregistre. Confirmez le code envoye a votre nouvelle adresse.'
+                : 'Profil mis � jour avec succ�s.',
+            'email_verification_required' => (bool) $user->pending_email,
+            'user' => $this->profileData($user),
+        ])->header('Cache-Control', 'private, no-store');
     }
 }

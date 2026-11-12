@@ -3,6 +3,7 @@
 use App\Models\User;
 
 return [
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:4200'),
 
     /*
     |--------------------------------------------------------------------------

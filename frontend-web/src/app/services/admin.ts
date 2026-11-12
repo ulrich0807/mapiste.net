@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AdminService {
-  private apiUrl = 'http://127.0.0.1:8000/api/admin';
+  private apiUrl = `${environment.apiUrl}/admin`;
 
   constructor(private http: HttpClient) {}
 
@@ -18,7 +19,7 @@ export class AdminService {
     });
   }
 
-  // 1. Récupérer toutes les données du dashboard
+  // 1. R�cup�rer toutes les donn�es du dashboard
   getDashboardData(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/dashboard`, { headers: this.getHeaders() });
   }
@@ -28,24 +29,24 @@ export class AdminService {
     return this.http.delete<any>(`${this.apiUrl}/users/${id}`, { headers: this.getHeaders() });
   }
 
-  // 3. Supprimer une annonce immobilière
+  // 3. Supprimer une annonce immobili�re
   deleteAnnonce(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/annonces/${id}`, { headers: this.getHeaders() });
   }
 
-  // 4. Supprimer une fiche annuaire (découverte)
+  // 4. Supprimer une fiche annuaire (d�couverte)
   deleteDecouverte(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/decouvertes/${id}`, { headers: this.getHeaders() });
   }
 
-  // --- NOUVELLES ACTIONS DE MODÉRATION ---
+  // --- NOUVELLES ACTIONS DE MOD�RATION ---
 
-  // Promouvoir/Rétrograder un admin
+  // Promouvoir/R�trograder un admin
   toggleAdmin(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/users/${id}/toggle-admin`, {}, { headers: this.getHeaders() });
   }
 
-  // Suspendre/Réactiver un compte
+  // Suspendre/R�activer un compte
   toggleActive(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/users/${id}/toggle-active`, {}, { headers: this.getHeaders() });
   }

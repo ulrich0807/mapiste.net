@@ -1,23 +1,20 @@
-import { TestBed } from '@angular/core/testing';
+import { describe, expect, it, vi } from 'vitest';
 import { App } from './app';
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-    }).compileComponents();
-  });
+  it('propose l installation puis ferme la banniere apres le choix utilisateur', async () => {
+    const app = new App();
+    const event = new Event('beforeinstallprompt', { cancelable: true });
+    app.onbeforeinstallprompt(event);
+    expect(event.defaultPrevented).toBe(true);
+    expect(app.showInstallBanner).toBe(true);
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend-web');
+    const prompt = vi.fn();
+    app.deferredPrompt = { prompt, userChoice: Promise.resolve({ outcome: 'dismissed' }) };
+    app.installerPWA();
+    expect(prompt).toHaveBeenCalledOnce();
+    expect(app.showInstallBanner).toBe(false);
+    await Promise.resolve();
+    expect(app.deferredPrompt).toBeNull();
   });
 });

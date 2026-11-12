@@ -10,15 +10,15 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    // Fonction de sécurité interne
+    // Fonction de s�curit� interne
     private function checkAdmin(Request $request) {
         if (!$request->user() || !$request->user()->is_admin) {
-            abort(403, 'Accès refusé. Vous n\'êtes pas administrateur.');
+            abort(403, 'Acc�s refus�. Vous n\'�tes pas administrateur.');
         }
     }
 
-    // 1. Récupérer TOUTES les données pour le Dashboard Admin
-   // 1. Récupérer TOUTES les données pour le Dashboard Admin
+    // 1. R�cup�rer TOUTES les donn�es pour le Dashboard Admin
+   // 1. R�cup�rer TOUTES les donn�es pour le Dashboard Admin
     public function getDashboardData(Request $request)
     {
         $this->checkAdmin($request);
@@ -49,24 +49,24 @@ class AdminController extends Controller
         ]);
     }
 
-    // 2. Supprimer n'importe quelle annonce (Modération)
+    // 2. Supprimer n'importe quelle annonce (Mod�ration)
     public function deleteAnnonce(Request $request, $id)
     {
         $this->checkAdmin($request);
         $annonce = Annonce::findOrFail($id);
         $annonce->delete();
 
-        return response()->json(['success' => true, 'message' => 'Annonce supprimée par la modération.']);
+        return response()->json(['success' => true, 'message' => 'Annonce supprim�e par la mod�ration.']);
     }
 
-    // 3. Supprimer n'importe quel établissement (Modération)
+    // 3. Supprimer n'importe quel �tablissement (Mod�ration)
     public function deleteDecouverte(Request $request, $id)
     {
         $this->checkAdmin($request);
         $decouverte = Decouverte::findOrFail($id);
         $decouverte->delete();
 
-        return response()->json(['success' => true, 'message' => 'Fiche annuaire supprimée par la modération.']);
+        return response()->json(['success' => true, 'message' => 'Fiche annuaire supprim�e par la mod�ration.']);
     }
 
     // 4. Supprimer / Bannir un utilisateur
@@ -74,22 +74,22 @@ class AdminController extends Controller
     {
         $this->checkAdmin($request);
         
-        // On s'empêche de se supprimer soi-même
+        // On s'emp�che de se supprimer soi-m�me
         if ($request->user()->id == $id) {
             return response()->json(['success' => false, 'message' => 'Vous ne pouvez pas supprimer votre propre compte admin.'], 400);
         }
 
         $user = User::findOrFail($id);
-        $user->delete(); // Grâce au "onDelete('cascade')" dans la BDD, cela supprimera aussi ses annonces !
+        $user->delete(); // Gr�ce au "onDelete('cascade')" dans la BDD, cela supprimera aussi ses annonces !
 
-        return response()->json(['success' => true, 'message' => 'Utilisateur banni et supprimé.']);
+        return response()->json(['success' => true, 'message' => 'Utilisateur banni et supprim�.']);
     }
 
     // ==========================================
-    // NOUVELLES ACTIONS DE MODÉRATION
+    // NOUVELLES ACTIONS DE MOD�RATION
     // ==========================================
 
-    // 1. Donner ou retirer le rôle Admin
+    // 1. Donner ou retirer le r�le Admin
     public function toggleAdmin(Request $request, $id)
     {
         $this->checkAdmin($request);
@@ -101,12 +101,13 @@ class AdminController extends Controller
         $user = User::findOrFail($id);
         $user->is_admin = !$user->is_admin;
         $user->save();
+        $user->tokens()->delete();
 
-        $statut = $user->is_admin ? 'promu Administrateur' : 'rétrogradé au rang de Membre';
-        return response()->json(['success' => true, 'message' => "L'utilisateur a été $statut."]);
+        $statut = $user->is_admin ? 'promu Administrateur' : 'r�trograd� au rang de Membre';
+        return response()->json(['success' => true, 'message' => "L'utilisateur a �t� $statut."]);
     }
 
-    // 2. Suspendre ou réactiver un compte
+    // 2. Suspendre ou r�activer un compte
     public function toggleActive(Request $request, $id)
     {
         $this->checkAdmin($request);
@@ -119,11 +120,15 @@ class AdminController extends Controller
         $user->is_active = !$user->is_active;
         $user->save();
 
-        $statut = $user->is_active ? 'réactivé' : 'suspendu';
-        return response()->json(['success' => true, 'message' => "Le compte de l'utilisateur a été $statut."]);
+        if (!$user->is_active) {
+            $user->tokens()->delete();
+        }
+
+        $statut = $user->is_active ? 'r�activ�' : 'suspendu';
+        return response()->json(['success' => true, 'message' => "Le compte de l'utilisateur a �t� $statut."]);
     }
 
-    // 3. Valider (Approuver) une annonce immobilière
+    // 3. Valider (Approuver) une annonce immobili�re
     public function validerAnnonce(Request $request, $id)
     {
         $this->checkAdmin($request);
@@ -135,7 +140,7 @@ class AdminController extends Controller
             $annonce->user->notify(new PublicationValidee($annonce->titre, 'annonce'));
         }
 
-        return response()->json(['success' => true, 'message' => 'Annonce approuvée et publiée.']);
+        return response()->json(['success' => true, 'message' => 'Annonce approuv�e et publi�e.']);
     }
 
     // 4. Valider (Approuver) une fiche annuaire
@@ -150,6 +155,6 @@ class AdminController extends Controller
             $decouverte->user->notify(new PublicationValidee($decouverte->nom, 'decouverte'));
         }
 
-        return response()->json(['success' => true, 'message' => 'Établissement approuvé et publié.']);
+        return response()->json(['success' => true, 'message' => '�tablissement approuv� et publi�.']);
     }
 }

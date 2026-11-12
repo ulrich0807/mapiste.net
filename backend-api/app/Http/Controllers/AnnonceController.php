@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class AnnonceController extends Controller
 {
-    // Récupérer et filtrer dynamiquement les annonces immobilières
+    // R�cup�rer et filtrer dynamiquement les annonces immobili�res
     public function index(Request $request)
     {
         $query = Annonce::where('est_valide', true);
@@ -38,12 +38,12 @@ class AnnonceController extends Controller
             $query->where('type_logement', $request->type_logement);
         }
 
-        // Filtres par nombre de pièces (recherche textuelle sur le titre)
+        // Filtres par nombre de pi�ces (recherche textuelle sur le titre)
         if ($request->has('pieces') && !empty($request->pieces)) {
             $query->where('titre', 'like', '%' . $request->pieces . '%');
         }
 
-        // Filtres avancés (eau, electricite, ecoles, etc.)
+        // Filtres avanc�s (eau, electricite, ecoles, etc.)
         if ($request->has('filtres_avances')) {
             $filtres = json_decode($request->filtres_avances, true);
             if (is_array($filtres)) {
@@ -53,20 +53,20 @@ class AnnonceController extends Controller
             }
         }
 
-        $annonces = $query->orderByRaw('CASE WHEN is_premium = 1 AND boosted_until > NOW() THEN 1 ELSE 0 END DESC')
+        $annonces = $query->orderByRaw('CASE WHEN is_premium = 1 AND boosted_until > ? THEN 1 ELSE 0 END DESC', [now()])
                           ->latest()
                           ->paginate(15);
 
         // Calcul dynamique des compteurs de statistiques globaux pour l'accueil
         $stats = [
-            'en_location' => Annonce::where('type_contrat', 'location')->count(),
-            'en_vente' => Annonce::where('type_contrat', 'vente')->count(),
+            'en_location' => Annonce::where('est_valide', true)->where('type_contrat', 'location')->count(),
+            'en_vente' => Annonce::where('est_valide', true)->where('type_contrat', 'vente')->count(),
             'vendeurs' => \App\Models\User::count(), 
-            'visiteurs' => 1450 // À dynamiser plus tard avec un vrai tracker
+            'visiteurs' => 1450 // � dynamiser plus tard avec un vrai tracker
         ];
 
-        // Agrégation par commune pour alimenter la liste latérale et la carte Leaflet
-        $communesStats = Annonce::select('commune', DB::raw('count(*) as total_logements'))
+        // Agr�gation par commune pour alimenter la liste lat�rale et la carte Leaflet
+        $communesStats = Annonce::where('est_valide', true)->select('commune', DB::raw('count(*) as total_logements'))
             ->groupBy('commune')
             ->get()
             ->map(function($item) {
@@ -85,7 +85,7 @@ class AnnonceController extends Controller
         ]);
     }
 
- // Enregistrer l'annonce avec l'utilisateur connecté
+ // Enregistrer l'annonce avec l'utilisateur connect�
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -121,7 +121,7 @@ class AnnonceController extends Controller
         }
 
         $annonce = Annonce::create([
-            'user_id' => $request->user()->id, // <-- On associe l'ID de l'utilisateur connecté !
+            'user_id' => $request->user()->id, // <-- On associe l'ID de l'utilisateur connect� !
             'titre' => $request->titre,
             'description' => $request->description,
             'prix' => $request->prix,
@@ -137,12 +137,12 @@ class AnnonceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Votre annonce a été publiée avec succès !',
+            'message' => 'Votre annonce a �t� publi�e avec succ�s !',
             'data' => $annonce
         ], 201);
     }
 
-    // Récupérer uniquement les annonces de l'utilisateur connecté
+    // R�cup�rer uniquement les annonces de l'utilisateur connect�
     public function myAnnonces(Request $request)
     {
         $annonces = Annonce::where('user_id', $request->user()->id)->latest()->get();
@@ -153,7 +153,7 @@ class AnnonceController extends Controller
         ]);
     }
 
-    // Supprimer une annonce appartenant à l'utilisateur connecté
+    // Supprimer une annonce appartenant � l'utilisateur connect�
     public function destroy(Request $request, $id)
     {
         $annonce = Annonce::where('user_id', $request->user()->id)->find($id);
@@ -169,15 +169,15 @@ class AnnonceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'L\'annonce a bien été supprimée.'
+            'message' => 'L\'annonce a bien �t� supprim�e.'
         ]);
     }
-    // Afficher les détails d'une annonce spécifique
+    // Afficher les d�tails d'une annonce sp�cifique
     public function show($id)
     {
         $annonce = Annonce::find($id);
 
-        if (!$annonce) {
+        if (!$annonce || !\App\Support\PublicationAccess::canView($annonce)) {
             return response()->json(['success' => false, 'message' => 'Annonce introuvable'], 404);
         }
 
@@ -186,30 +186,52 @@ class AnnonceController extends Controller
             'data' => $annonce
         ]);
     }
-    // (PROTÉGÉ) Modifier une annonce existante
+    // (PROT�G�) Modifier une annonce existante
     public function update(Request $request, $id)
     {
-        // 1. On cherche l'annonce, et on vérifie qu'elle appartient bien à l'utilisateur connecté
+        // 1. On cherche l'annonce, et on v�rifie qu'elle appartient bien � l'utilisateur connect�
         $annonce = Annonce::where('user_id', $request->user()->id)->find($id);
 
         if (!$annonce) {
-            return response()->json(['success' => false, 'message' => 'Annonce introuvable ou accès refusé.'], 404);
+            return response()->json(['success' => false, 'message' => 'Annonce introuvable ou acc�s refus�.'], 404);
+        }
+
+        if ($request->has('equipements') && is_string($request->equipements)) {
+            $request->merge(['equipements' => json_decode($request->equipements, true)]);
+        }
+        if ($request->has('retained_images') && is_string($request->retained_images)) {
+            $request->merge(['retained_images' => json_decode($request->retained_images, true)]);
         }
 
         $validator = Validator::make($request->all(), [
             'titre' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'prix' => 'nullable|numeric',
+            'prix' => 'sometimes|required|numeric|min:0',
             'commune' => 'nullable|string',
             'type_contrat' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:4096',
+            'ville' => 'sometimes|required|string|max:255',
+            'equipements' => 'sometimes|array',
+            'equipements.*' => 'string|in:eau,electricite,ecoles,transports,travail',
+            'retained_images' => 'sometimes|array:salon,chambre,cuisine,salle_de_bain,exterieur',
+            'retained_images.*' => 'array',
+            'retained_images.*.*' => 'string',
+            'images_salon' => 'sometimes|array|max:20',
+            'images_chambre' => 'sometimes|array|max:20',
+            'images_cuisine' => 'sometimes|array|max:20',
+            'images_salle_de_bain' => 'sometimes|array|max:20',
+            'images_exterieur' => 'sometimes|array|max:20',
+            'images_salon.*' => 'image|mimes:jpeg,png,jpg|max:4096',
+            'images_chambre.*' => 'image|mimes:jpeg,png,jpg|max:4096',
+            'images_cuisine.*' => 'image|mimes:jpeg,png,jpg|max:4096',
+            'images_salle_de_bain.*' => 'image|mimes:jpeg,png,jpg|max:4096',
+            'images_exterieur.*' => 'image|mimes:jpeg,png,jpg|max:4096',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'message' => $validator->errors()->first()], 400);
         }
 
-        // 2. On met à jour les champs textes
+        // 2. On met � jour les champs textes
         $annonce->titre = $request->titre ?? $annonce->titre;
         $annonce->description = $request->description ?? $annonce->description;
         $annonce->prix = $request->prix ?? $annonce->prix;
@@ -217,30 +239,44 @@ class AnnonceController extends Controller
         $annonce->commune = $request->commune ?? $annonce->commune;
         $annonce->ville = $request->ville ?? $annonce->ville;
 
-        // 3. Gestion des nouvelles images (Optionnel : s'il y a de nouvelles images, on écrase les anciennes)
-        if ($request->hasFile('images')) {
-            $urlsImages = [];
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('annonces', 'public');
-                $urlsImages[] = asset('storage/' . $path);
-            }
-            // Adapte ce code si tu as une structure d'images complexe (salon, cuisine, etc.)
-            $annonce->images = json_encode(['exterieur' => $urlsImages]); 
+        if ($request->has('equipements')) {
+            $annonce->equipements = $request->equipements;
         }
 
-        // 4. LA RÈGLE D'OR : On repasse l'annonce en "Attente de validation"
+        // Conserver uniquement les photos existantes choisies, puis ajouter les nouvelles.
+        $images = json_decode($annonce->images ?? '{}', true) ?: [];
+        $retained = $request->input('retained_images');
+        foreach (['salon', 'chambre', 'cuisine', 'salle_de_bain', 'exterieur'] as $category) {
+            $existing = $images[$category] ?? [];
+            if ($retained !== null) {
+                $requested = $retained[$category] ?? [];
+                if (array_diff($requested, $existing)) {
+                    return response()->json(['success' => false, 'message' => 'Photo existante invalide.'], 422);
+                }
+            }
+        }
+        foreach (['salon', 'chambre', 'cuisine', 'salle_de_bain', 'exterieur'] as $category) {
+            $images[$category] = $retained !== null ? ($retained[$category] ?? []) : ($images[$category] ?? []);
+            foreach ($request->file("images_$category", []) as $image) {
+                $path = $image->store("annonces/$category", 'public');
+                $images[$category][] = asset('storage/' . $path);
+            }
+        }
+        $annonce->images = json_encode($images);
+
+        // 4. LA R�GLE D'OR : On repasse l'annonce en "Attente de validation"
         $annonce->est_valide = false;
         
         $annonce->save();
 
         return response()->json([
             'success' => true,
-            'message' => 'Annonce modifiée avec succès. Elle est en attente de validation par un administrateur.',
+            'message' => 'Annonce modifi�e avec succ�s. Elle est en attente de validation par un administrateur.',
             'data' => $annonce
         ]);
     }
 
-    // Basculer l'état du favori
+    // Basculer l'�tat du favori
     public function toggleFavori(Request $request, $id)
     {
         $user = $request->user();
@@ -267,30 +303,16 @@ class AnnonceController extends Controller
     // Lister les favoris de l'utilisateur
     public function mesFavoris(Request $request)
     {
-        $favoris = $request->user()->favoris()->with('user')->latest()->get();
+        $favoris = $request->user()->favoris()->where('est_valide', true)->with('user')->latest()->get();
         return response()->json([
             'success' => true,
             'data' => $favoris
         ]);
     }
 
-    // Activer l'offre Premium (Simulée)
+    // Les boosts necessitent un paiement verifie cote serveur.
     public function boost(Request $request, $id)
     {
-        $annonce = Annonce::where('user_id', $request->user()->id)->find($id);
-
-        if (!$annonce) {
-            return response()->json(['success' => false, 'message' => 'Annonce introuvable ou accès refusé.'], 404);
-        }
-
-        $annonce->is_premium = true;
-        $annonce->boosted_until = now()->addDays(7);
-        $annonce->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Félicitations ! Votre annonce est maintenant "À la une".',
-            'data' => $annonce
-        ]);
+        return response()->json(['success' => false, 'message' => 'Les boosts payants ne sont pas encore disponibles.'], 503);
     }
 }

@@ -5,6 +5,7 @@
       <img [src]="user.avatar || 'https://ui-avatars.com/api/?name=' + user.name + '&background=random'" alt="Avatar">
       <h3>{{ user.name }}</h3>
       <span class="role-badge" [ngClass]="user.role">{{ user.role | uppercase }}</span>
+      <span *ngIf="user.is_admin" class="role-badge">ADMINISTRATEUR</span>
     </div>
 
     <ul class="profil-menu">
@@ -34,10 +35,24 @@
       <div *ngIf="!isEditing" class="info-card">
         <p><strong>Nom :</strong> {{ user.name }}</p>
         <p><strong>Email :</strong> {{ user.email }}</p>
-        <p><strong>Téléphone :</strong> {{ user.phone || 'Non renseigné' }}</p>
+        <p><strong>T�l�phone :</strong> {{ user.phone || 'Non renseign�' }}</p>
       </div>
 
-      <!-- MODE ÉDITION -->
+      <!-- MODE �DITION -->
+      <section *ngIf="user.pending_email" class="info-card mb-6" aria-label="Confirmer la nouvelle adresse e-mail">
+        <h3 class="font-bold mb-3">Nouvelle adresse � confirmer</h3>
+        <p>Un code a �t� envoy� � <strong>{{ user.pending_email }}</strong>. Votre adresse actuelle reste active jusqu'� la confirmation.</p>
+        <p class="text-sm mt-2">Le code expire apr�s 15 minutes. La confirmation fermera vos sessions : reconnectez-vous ensuite avec votre nouvelle adresse.</p>
+        <p *ngIf="emailChangeError" role="alert" class="text-red-700 mt-3">{{ emailChangeError }}</p>
+        <label for="email-change-code" class="block mt-4 mb-2">Code � six chiffres</label>
+        <input id="email-change-code" [(ngModel)]="emailCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" class="w-full p-3 border rounded-xl">
+        <div class="flex flex-wrap gap-3 mt-4">
+          <button type="button" (click)="confirmEmail()" [disabled]="emailChangeBusy || isLoading" class="px-4 py-2 bg-orange-500 text-white rounded-lg disabled:opacity-50">Confirmer l'adresse</button>
+          <button type="button" (click)="resendEmailCode()" [disabled]="emailChangeBusy || isLoading" class="px-4 py-2 border rounded-lg">Renvoyer un code</button>
+          <button type="button" (click)="cancelEmail()" [disabled]="emailChangeBusy || isLoading" class="px-4 py-2 border rounded-lg">Annuler le changement</button>
+        </div>
+      </section>
+
       <div *ngIf="isEditing" class="info-card animate-fade-in-up">
         <div class="mb-6">
           <label class="block text-sm font-bold text-gray-700 mb-2">Photo de profil</label>
@@ -58,13 +73,19 @@
         </div>
 
         <div class="mb-6">
-          <label class="block text-sm font-bold text-gray-700 mb-2">Téléphone</label>
+          <label class="block text-sm font-bold text-gray-700 mb-2">T�l�phone</label>
           <input type="tel" [(ngModel)]="editForm.phone" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-orange-500 outline-none" placeholder="+225 01 02 03 04 05">
         </div>
 
+        <div *ngIf="editForm.email !== user.email" class="mb-6">
+          <label for="current-password" class="block text-sm font-bold text-gray-700 mb-2">Mot de passe actuel</label>
+          <input id="current-password" type="password" [(ngModel)]="currentPassword" autocomplete="current-password" maxlength="128" class="w-full p-3 border rounded-xl">
+          <p class="text-sm text-gray-600 mt-2">Requis pour envoyer un code � votre nouvelle adresse. V�rifiez le code dans ce profil pour terminer le changement.</p>
+        </div>
+
         <div class="flex gap-4">
-          <button (click)="toggleEdit()" [disabled]="isLoading" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl hover:bg-gray-300 transition">Annuler</button>
-          <button (click)="saveProfile()" [disabled]="isLoading" class="flex-1 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition flex justify-center items-center gap-2">
+          <button (click)="toggleEdit()" [disabled]="isLoading || emailChangeBusy" class="flex-1 py-3 bg-gray-200 text-gray-800 font-bold rounded-xl hover:bg-gray-300 transition">Annuler</button>
+          <button (click)="saveProfile()" [disabled]="isLoading || emailChangeBusy" class="flex-1 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition flex justify-center items-center gap-2">
             <span *ngIf="isLoading" class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
             Enregistrer
           </button>
@@ -92,20 +113,20 @@
 
     <!-- TAB VISITES -->
     <div *ngIf="activeTab === 'visites'" class="tab-content">
-      <h2>{{ user.role === 'proprietaire' ? 'Demandes de visites reçues' : 'Mes visites programmées' }}</h2>
+      <h2>{{ user.role === 'proprietaire' ? 'Demandes de visites re�ues' : 'Mes visites programm�es' }}</h2>
       <div *ngIf="visites.length === 0" class="empty-state">
-        Aucune visite prévue.
+        Aucune visite pr�vue.
       </div>
       
       <div class="visites-list">
         <div *ngFor="let visite of visites" class="visite-card">
           <div class="visite-info">
             <h4>{{ visite.annonce?.titre }}</h4>
-            <p><strong>Date prévue :</strong> {{ visite.date_visite | date:'dd/MM/yyyy à HH:mm' }}</p>
+            <p><strong>Date pr�vue :</strong> {{ visite.date_visite | date:'dd/MM/yyyy � HH:mm' }}</p>
             <p><strong>Statut :</strong> <span class="badge" [ngClass]="visite.statut">{{ visite.statut }}</span></p>
             
             <div *ngIf="user.role === 'proprietaire'" class="locataire-info">
-              Demandée par : {{ visite.locataire?.name }} ({{ visite.locataire?.phone }})
+              Demand�e par : {{ visite.locataire?.name }} ({{ visite.locataire?.phone }})
             </div>
             <p *ngIf="visite.message"><strong>Message :</strong> {{ visite.message }}</p>
           </div>

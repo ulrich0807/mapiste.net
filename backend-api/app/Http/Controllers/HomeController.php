@@ -11,11 +11,11 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // 1. Récupération des statistiques réelles
+        // 1. R�cup�ration des statistiques r�elles
         $statistiques = [
-            'total_biens' => Annonce::count(),
-            'total_artisans' => Decouverte::count(),
-            'total_villes' => Annonce::distinct('ville')->count('ville'),
+            'total_biens' => Annonce::where('est_valide', true)->count(),
+            'total_artisans' => Decouverte::where('est_valide', true)->count(),
+            'total_villes' => Annonce::where('est_valide', true)->distinct('ville')->count('ville'),
             'total_users' => User::count()
         ];
 

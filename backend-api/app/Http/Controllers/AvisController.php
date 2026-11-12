@@ -19,7 +19,7 @@ class AvisController extends Controller
         ]);
 
         if ($validator->fails() || (!$request->target_id && !$request->annonce_id)) {
-            return response()->json(['success' => false, 'message' => 'Données invalides'], 400);
+            return response()->json(['success' => false, 'message' => 'Donn�es invalides'], 400);
         }
 
         $avis = Avis::create([
@@ -28,19 +28,24 @@ class AvisController extends Controller
             'annonce_id' => $request->annonce_id,
             'note' => $request->note,
             'commentaire' => $request->commentaire,
-            'is_approved' => true // Peut être passé à false si on veut de la modération a priori
+            'is_approved' => true // Peut �tre pass� � false si on veut de la mod�ration a priori
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Votre avis a été publié',
+            'message' => 'Votre avis a �t� publi�',
             'data' => $avis
         ]);
     }
 
-    // Récupérer les avis d'une annonce
+    // R�cup�rer les avis d'une annonce
     public function avisAnnonce($id)
     {
+        $annonce = \App\Models\Annonce::find($id);
+        if (!$annonce || !\App\Support\PublicationAccess::canView($annonce)) {
+            return response()->json(['success' => false, 'message' => 'Annonce introuvable'], 404);
+        }
+
         $avis = Avis::where('annonce_id', $id)->where('is_approved', true)->with('user')->get();
         
         return response()->json([

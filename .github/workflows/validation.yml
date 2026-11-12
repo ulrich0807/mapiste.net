@@ -1,0 +1,55 @@
+name: Validation MACAZ
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Tests Laravel
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, sqlite3, gd, zip
+          tools: composer:v2
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - name: Pr�parer la configuration de test
+        run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+      - run: php artisan test
+
+  frontend:
+    name: Tests et compilation Angular
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend-web/package-lock.json
+      - run: npm ci
+      - run: npm test -- --watch=false
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macaz-angular
+          path: frontend-web/dist/frontend-web/browser/
+          if-no-files-found: error

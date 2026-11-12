@@ -38,6 +38,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'pending_email',
+        'email_change_code_hash',
+        'email_change_expires_at',
+        'email_change_attempts',
         'otp_code',
         'otp_expires_at',
     ];
@@ -50,7 +54,11 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
+            'is_admin' => 'boolean',
             'email_verified_at' => 'datetime',
+            'email_change_expires_at' => 'datetime',
+            'email_change_attempts' => 'integer',
             'password' => 'hashed',
         ];
     }

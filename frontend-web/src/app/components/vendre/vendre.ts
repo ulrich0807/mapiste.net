@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // <-- Très important pour ngModel
+import { FormsModule } from '@angular/forms'; // <-- Tr�s important pour ngModel
 import { ActivatedRoute } from '@angular/router'; // <-- Pour lire ?id=27
 import { AnnonceService } from '../../services/annonce';
 
@@ -9,6 +9,7 @@ interface CategoriePhoto {
   code: string;
   files: File[];
   previews: string[];
+  existingImages?: string[];
 }
 
 @Component({
@@ -17,17 +18,18 @@ interface CategoriePhoto {
   imports: [CommonModule, FormsModule], // <-- Ajout de FormsModule
   templateUrl: './vendre.html',
 })
-export class Vendre implements OnInit {
+export class Vendre implements OnInit, OnDestroy {
   formSoumis = false;
   chargement = false;
   erreurMessage = '';
 
-  // --- GESTION DU MODE ÉDITION ---
+  // --- GESTION DU MODE �DITION ---
   modeEdition = false;
   idEdition: number | null = null;
-  chargementInitial = false; // Pour afficher un "Chargement..." au début
+  chargementInitial = false; // Pour afficher un "Chargement..." au d�but
+  private ville = 'Abidjan';
 
-  // Modèle de données pour lier le HTML au TypeScript
+  // Mod�le de donn�es pour lier le HTML au TypeScript
   annonceData = {
     titre: '',
     prix: '',
@@ -36,7 +38,7 @@ export class Vendre implements OnInit {
     description: ''
   };
 
-  // Commodités et équipements avancés
+  // Commodit�s et �quipements avanc�s
   amenities: { [key: string]: boolean } = {
     eau: false,
     electricite: false,
@@ -46,11 +48,11 @@ export class Vendre implements OnInit {
   };
 
   categoriesPhotos: CategoriePhoto[] = [
-    { nom: 'Salon & Séjour', code: 'salon', files: [], previews: [] },
+    { nom: 'Salon & S�jour', code: 'salon', files: [], previews: [] },
     { nom: 'Chambres', code: 'chambre', files: [], previews: [] },
     { nom: 'Cuisine', code: 'cuisine', files: [], previews: [] },
     { nom: 'Salles de bain', code: 'salle_de_bain', files: [], previews: [] },
-    { nom: 'Extérieur / Façade', code: 'exterieur', files: [], previews: [] }
+    { nom: 'Ext�rieur / Fa�ade', code: 'exterieur', files: [], previews: [] }
   ];
 
   constructor(
@@ -59,7 +61,7 @@ export class Vendre implements OnInit {
   ) {}
 
   ngOnInit() {
-    // 1. On écoute l'URL pour voir si on est en modification
+    // 1. On �coute l'URL pour voir si on est en modification
     this.route.queryParams.subscribe((params: any) => {
       if (params['id']) {
         this.modeEdition = true;
@@ -69,7 +71,13 @@ export class Vendre implements OnInit {
     });
   }
 
-  // 2. On récupère les données et on pré-remplit le formulaire
+  ngOnDestroy() {
+    this.categoriesPhotos.forEach(cat => cat.previews.forEach(url => {
+      if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+    }));
+  }
+
+  // 2. On r�cup�re les donn�es et on pr�-remplit le formulaire
   chargerDonneesAnnonce(id: number) {
     this.chargementInitial = true;
     this.annonceService.getAnnonce(id).subscribe({
@@ -77,6 +85,7 @@ export class Vendre implements OnInit {
         this.chargementInitial = false;
         if (res.success) {
           const data = res.data;
+          this.ville = data.ville || 'Abidjan';
           this.annonceData = {
             titre: data.titre,
             prix: data.prix,
@@ -93,13 +102,14 @@ export class Vendre implements OnInit {
             });
           }
 
-          // On essaie de précharger les anciennes images
+          // On essaie de pr�charger les anciennes images
           if (data.images) {
             try {
               const parsedImages = JSON.parse(data.images);
               this.categoriesPhotos.forEach(cat => {
                 if (parsedImages[cat.code] && Array.isArray(parsedImages[cat.code])) {
-                  cat.previews = parsedImages[cat.code]; 
+                  cat.existingImages = [...parsedImages[cat.code]];
+                  cat.previews = [...parsedImages[cat.code]];
                 }
               });
             } catch (e) {
@@ -110,7 +120,7 @@ export class Vendre implements OnInit {
       },
       error: (err: any) => {
         this.chargementInitial = false;
-        this.erreurMessage = "Erreur lors du chargement des données de l'annonce.";
+        this.erreurMessage = "Erreur lors du chargement des donn�es de l'annonce.";
       }
     });
   }
@@ -124,11 +134,7 @@ export class Vendre implements OnInit {
         const file = files[i];
         categorie.files.push(file);
         
-        const reader = new FileReader();
-        reader.onload = (e: any) => {
-          categorie.previews.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
+        categorie.previews.push(URL.createObjectURL(file));
       }
     }
   }
@@ -136,11 +142,14 @@ export class Vendre implements OnInit {
   retirerPhoto(codeCategorie: string, index: number) {
     const categorie = this.categoriesPhotos.find(c => c.code === codeCategorie);
     if (categorie) {
-      categorie.previews.splice(index, 1);
-      // Attention : si c'est une ancienne photo (qui n'a pas de file associé), ça retirera juste la preview
-      if (categorie.files.length > index) {
-        categorie.files.splice(index, 1);
+      const existingCount = categorie.existingImages?.length ?? 0;
+      if (index < existingCount) {
+        categorie.existingImages!.splice(index, 1);
+      } else {
+        categorie.files.splice(index - existingCount, 1);
+        URL.revokeObjectURL(categorie.previews[index]);
       }
+      categorie.previews.splice(index, 1);
     }
   }
 
@@ -149,7 +158,7 @@ export class Vendre implements OnInit {
     this.chargement = true;
     this.erreurMessage = '';
 
-    // Vérification propre avec notre modèle
+    // V�rification propre avec notre mod�le
     if (!this.annonceData.titre || !this.annonceData.prix || !this.annonceData.commune || !this.annonceData.type_contrat || !this.annonceData.description) {
       this.chargement = false;
       this.erreurMessage = 'Veuillez remplir tous les champs obligatoires du formulaire.';
@@ -162,11 +171,14 @@ export class Vendre implements OnInit {
     formData.append('commune', this.annonceData.commune);
     formData.append('type_contrat', this.annonceData.type_contrat);
     formData.append('description', this.annonceData.description);
-    formData.append('ville', 'Abidjan'); 
+    formData.append('ville', this.ville);
 
     const equipementsArray = Object.keys(this.amenities).filter(k => this.amenities[k]);
-    if (equipementsArray.length > 0) {
-      formData.append('equipements', JSON.stringify(equipementsArray));
+    formData.append('equipements', JSON.stringify(equipementsArray));
+    if (this.modeEdition) {
+      const retained: Record<string, string[]> = {};
+      this.categoriesPhotos.forEach(cat => retained[cat.code] = cat.existingImages ?? []);
+      formData.append('retained_images', JSON.stringify(retained));
     }
 
     this.categoriesPhotos.forEach(cat => {
@@ -175,7 +187,7 @@ export class Vendre implements OnInit {
       });
     });
 
-    // 4. Choix dynamique : Mettre à jour (si id existe) OU Créer
+    // 4. Choix dynamique : Mettre � jour (si id existe) OU Cr�er
     const requete$ = this.modeEdition && this.idEdition 
       ? this.annonceService.updateAnnonce(this.idEdition, formData)
       : this.annonceService.creerAnnonce(formData);
@@ -184,14 +196,14 @@ export class Vendre implements OnInit {
       next: (res: any) => {
         this.chargement = false;
         if (res.success) {
-          this.formSoumis = true; // Affiche ton message de succès "Publiée !" ou "Modifiée !"
+          this.formSoumis = true; // Affiche ton message de succ�s "Publi�e !" ou "Modifi�e !"
         } else {
           this.erreurMessage = res.message || 'Une erreur est survenue.';
         }
       },
       error: (err: any) => {
         this.chargement = false;
-        this.erreurMessage = 'Impossible d\'enregistrer. Vérifiez votre connexion.';
+        this.erreurMessage = 'Impossible d\'enregistrer. V�rifiez votre connexion.';
       }
     });
   }

@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
@@ -24,9 +25,9 @@ export interface Notification {
   providedIn: 'root'
 })
 export class NotificationService {
-  private apiUrl = 'http://localhost:8000/api/notifications';
+  private apiUrl = `${environment.apiUrl}/notifications`;
   
-  // Signaux pour la réactivité dans les composants
+  // Signaux pour la r�activit� dans les composants
   unreadCount = signal<number>(0);
   notifications = signal<Notification[]>([]);
 
@@ -49,7 +50,7 @@ export class NotificationService {
   markAsRead(id: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${id}/read`, {}, { headers: this.getHeaders() }).pipe(
       tap(() => {
-        // Rafraîchir la liste après lecture
+        // Rafra�chir la liste apr�s lecture
         this.fetchUnread().subscribe();
       })
     );

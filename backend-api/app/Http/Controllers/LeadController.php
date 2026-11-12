@@ -2,76 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\LeadResource;
 use App\Models\Lead;
-use App\Models\LeadPurchase;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class LeadController extends Controller
 {
-    // Liste les demandes pour les professionnels (masque le téléphone si non acheté)
-    public function index()
+    private function visibleLeads(Request $request)
     {
-        $leads = Lead::where('is_active', true)->get()->map(function ($lead) {
-            // Vérifie si l'utilisateur connecté a acheté ce lead
-            $hasPurchased = false;
-            if (Auth::check()) {
-                $hasPurchased = LeadPurchase::where('lead_id', $lead->id)
-                    ->where('professional_id', Auth::id())
-                    ->exists();
-            }
-
-            // Si non acheté, masquer le téléphone
-            if (!$hasPurchased) {
-                $lead->telephone = 'Masqué (Acheter pour voir)';
-            }
-
-            $lead->has_purchased = $hasPurchased; // Flag pour le frontend
-            return $lead;
-        });
-
-        return response()->json($leads);
-    }
-
-    // Affiche un lead spécifique (vérifie l'achat)
-    public function show(string $id)
-    {
-        $lead = Lead::findOrFail($id);
-        
-        $hasPurchased = false;
-        if (Auth::check()) {
-            $hasPurchased = LeadPurchase::where('lead_id', $lead->id)
-                ->where('professional_id', Auth::id())
-                ->exists();
+        $query = Lead::where('is_active', true);
+        if ($user = $request->user()) {
+            $query->withExists(['purchases as has_purchased' => fn ($purchases) =>
+                $purchases->where('professional_id', $user->id)
+            ]);
         }
 
-        if (!$hasPurchased) {
-            $lead->telephone = 'Masqué';
-        }
-        $lead->has_purchased = $hasPurchased;
-
-        return response()->json($lead);
+        return $query;
     }
 
-    // Créer une nouvelle demande (Client B2C)
+    public function index(Request $request)
+    {
+        $data = $request->validate(['page' => 'sometimes|integer|min:1']);
+        $leads = $this->visibleLeads($request)->latest()->orderByDesc('id')
+            ->paginate(15, ['*'], 'page', $data['page'] ?? 1);
+
+        return LeadResource::collection($leads)->response()
+            ->header('Cache-Control', 'private, no-store')
+            ->header('Vary', 'Authorization, Cookie');
+    }
+
+    public function show(Request $request, string $id)
+    {
+        return (new LeadResource($this->visibleLeads($request)->findOrFail($id)))->response()
+            ->header('Cache-Control', 'private, no-store')
+            ->header('Vary', 'Authorization, Cookie');
+    }
+
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'titre' => 'required|string|max:255',
-            'description' => 'required|string',
-            'telephone' => 'required|string',
+            'description' => 'required|string|max:5000',
+            'telephone' => 'required|string|max:30|regex:/^\+?[0-9][0-9\s().-]{5,28}$/',
+            'budget' => 'nullable|numeric|min:0|max:9999999999.99',
+            'localisation' => 'nullable|string|max:255',
         ]);
 
-        $lead = Lead::create([
-            'user_id' => $request->user() ? $request->user()->id : null, // Si utilisateur authentifié
-            'titre' => $request->titre,
-            'description' => $request->description,
-            'budget' => $request->budget,
-            'localisation' => $request->localisation,
-            'telephone' => $request->telephone,
-            'is_active' => true
-        ]);
+        $lead = Lead::create(array_merge($data, [
+            'user_id' => $request->user()?->id,
+            'is_active' => true,
+        ]));
 
-        return response()->json(['message' => 'Demande créée avec succès', 'lead' => $lead], 201);
+        return response()->json([
+            'message' => 'Demande creee avec succes.',
+            'lead' => new LeadResource($lead),
+        ], 201)->header('Cache-Control', 'private, no-store');
     }
 }

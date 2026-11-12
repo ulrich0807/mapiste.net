@@ -12,9 +12,9 @@ import { PaymentService, PaymentInitiation } from '../../services/payment';
 })
 export class SubscriptionPlansComponent {
   plans = [
-    { name: 'Formule 1', price: 15000, desc: 'Petites agences', features: ['8 annonces', 'Photos & descriptions', 'Coordonnées agence'] },
-    { name: 'Formule 2', price: 25000, desc: 'Moyennes agences', features: ['15 annonces', 'Profil optimisé', 'Présence prioritaire'] },
-    { name: 'Formule 3', price: 50000, desc: 'Grandes agences', features: ['Annonces illimitées', 'Positionnement prioritaire', 'Réseaux sociaux'] }
+    { name: 'Formule 1', price: 15000, desc: 'Petites agences', features: ['8 annonces', 'Photos & descriptions', 'Coordonn�es agence'] },
+    { name: 'Formule 2', price: 25000, desc: 'Moyennes agences', features: ['15 annonces', 'Profil optimis�', 'Pr�sence prioritaire'] },
+    { name: 'Formule 3', price: 50000, desc: 'Grandes agences', features: ['Annonces illimit�es', 'Positionnement prioritaire', 'R�seaux sociaux'] }
   ];
 
   constructor(private paymentService: PaymentService, private router: Router) {}
@@ -22,7 +22,7 @@ export class SubscriptionPlansComponent {
   souscrire(plan: any): void {
     const token = localStorage.getItem('macaz_token');
     if (!token) {
-      alert('Vous devez être connecté pour souscrire à une offre.');
+      alert('Vous devez �tre connect� pour souscrire � une offre.');
       this.router.navigate(['/auth']);
       return;
     }
@@ -39,10 +39,10 @@ export class SubscriptionPlansComponent {
       },
       error: (err) => {
         if (err.status === 401) {
-          alert('Votre session a expiré. Veuillez vous reconnecter.');
+          alert('Votre session a expir�. Veuillez vous reconnecter.');
           this.router.navigate(['/auth']);
         } else {
-          alert('Une erreur est survenue lors du paiement.');
+          alert(err.error?.message || 'Une erreur est survenue lors du paiement.');
         }
       }
     });

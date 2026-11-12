@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class VisiteService {
-  private apiUrl = 'http://127.0.0.1:8000/api/visites';
+  private apiUrl = `${environment.apiUrl}/visites`;
 
   constructor(private http: HttpClient) {}
 
@@ -20,11 +21,11 @@ export class VisiteService {
   }
 
   getMesVisites(): Observable<any> {
-    return this.http.get<any>('http://127.0.0.1:8000/api/mes-visites', { headers: this.getHeaders() });
+    return this.http.get<any>(`${environment.apiUrl}/mes-visites`, { headers: this.getHeaders() });
   }
 
   getDemandesRecues(): Observable<any> {
-    return this.http.get<any>('http://127.0.0.1:8000/api/demandes-visites', { headers: this.getHeaders() });
+    return this.http.get<any>(`${environment.apiUrl}/demandes-visites`, { headers: this.getHeaders() });
   }
 
   changerStatut(visiteId: number, statut: 'validee' | 'annulee' | 'terminee'): Observable<any> {

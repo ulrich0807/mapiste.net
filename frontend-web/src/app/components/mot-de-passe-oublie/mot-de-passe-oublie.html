@@ -8,28 +8,29 @@
     <!-- Bouton de retour -->
     <a routerLink="/auth" class="inline-flex items-center text-sm font-medium text-gray-400 hover:text-orange-500 mb-8 transition-colors">
       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-      Retour à la connexion
+      Retour � la connexion
     </a>
 
-    <h2 class="text-2xl font-black text-white mb-2">Mot de passe oublié</h2>
-    <p class="text-gray-400 text-sm mb-8">Entrez votre adresse email pour recevoir un lien de réinitialisation sécurisé.</p>
+    <h2 class="text-2xl font-black text-white mb-2">Mot de passe oubli�</h2>
+    <p class="text-gray-400 text-sm mb-8">Entrez votre adresse email pour recevoir un lien de r�initialisation s�curis�.</p>
 
-    <!-- Message de succès (Apparaît après soumission) -->
+    <!-- Message de succ�s (Appara�t apr�s soumission) -->
     <div *ngIf="emailEnvoye" class="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-sm mb-6 flex items-start animate-fade-in-up">
       <svg class="w-5 h-5 mr-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-      Si ce compte existe, un email contenant les instructions vient d'être envoyé à cette adresse.
+      Si ce compte existe, un email contenant les instructions vient d'�tre envoy� � cette adresse.
     </div>
 
+    <p *ngIf="erreur" role="alert" class="text-red-300 mb-4">{{ erreur }}</p>
     <!-- Le Formulaire -->
     <form *ngIf="!emailEnvoye" (submit)="onSubmit($event)" class="space-y-5">
       <div>
-        <label class="block text-sm font-medium text-gray-300 mb-2">Adresse Email</label>
-        <input type="email" required placeholder="vous@exemple.ci" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all">
+        <label for="reset-email" class="block text-sm font-medium text-gray-300 mb-2">Adresse Email</label>
+        <input id="reset-email" name="email" [(ngModel)]="email" type="email" autocomplete="email" required maxlength="255" placeholder="vous@exemple.ci" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all">
       </div>
 
       <div class="pt-4">
-        <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 rounded-tl-2xl rounded-br-2xl rounded-tr-md rounded-bl-md shadow-lg transition-transform transform hover:scale-[1.02]">
-          Envoyer le lien
+        <button type="submit" [disabled]="chargement" class="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-4 rounded-tl-2xl rounded-br-2xl rounded-tr-md rounded-bl-md shadow-lg transition-transform transform hover:scale-[1.02]">
+          {{ chargement ? 'Envoi en cours.' : 'Envoyer le lien' }}
         </button>
       </div>
     </form>

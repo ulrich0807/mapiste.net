@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -6,7 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class MessagerieService {
-  private apiUrl = 'http://127.0.0.1:8000/api/messages';
+  private apiUrl = `${environment.apiUrl}/messages`;
 
   constructor(private http: HttpClient) {}
 

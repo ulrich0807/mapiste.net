@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\Storage;
 
 class DecouverteController extends Controller
 {
-    // 1. (PUBLIC) Récupérer toutes les publications (Maquis, Artisans, etc.)
+    // 1. (PUBLIC) R�cup�rer toutes les publications (Maquis, Artisans, etc.)
     public function index(Request $request)
     {
  $query = Decouverte::where('est_valide', true);
 
-        // Filtre par catégorie (ex: restaurant, artisan)
+        // Filtre par cat�gorie (ex: restaurant, artisan)
         if ($request->has('categorie') && !empty($request->categorie)) {
             $query->where('categorie', $request->categorie);
         }
@@ -32,12 +32,12 @@ class DecouverteController extends Controller
         ]);
     }
 
-    // 2. (PUBLIC) Afficher les détails d'un lieu/artisan spécifique
+    // 2. (PUBLIC) Afficher les d�tails d'un lieu/artisan sp�cifique
     public function show($id)
     {
         $decouverte = Decouverte::find($id);
 
-        if (!$decouverte) {
+        if (!$decouverte || !\App\Support\PublicationAccess::canView($decouverte)) {
             return response()->json(['success' => false, 'message' => 'Publication introuvable'], 404);
         }
 
@@ -47,7 +47,7 @@ class DecouverteController extends Controller
         ]);
     }
 
-    // 3. (PROTÉGÉ) Créer une nouvelle publication
+    // 3. (PROT�G�) Cr�er une nouvelle publication
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -56,6 +56,8 @@ class DecouverteController extends Controller
             'description' => 'required|string',
             'commune' => 'required|string',
             'telephone' => 'required|string',
+            'images' => 'sometimes|array|max:20',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:4096',
         ]);
 
         if ($validator->fails()) {
@@ -66,7 +68,7 @@ class DecouverteController extends Controller
         $urlsImages = [];
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                // On range les images dans un dossier spécifique "decouvertes"
+                // On range les images dans un dossier sp�cifique "decouvertes"
                 $path = $image->store('decouvertes', 'public');
                 $urlsImages[] = asset('storage/' . $path);
             }
@@ -84,12 +86,12 @@ class DecouverteController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Votre établissement/service a été publié avec succès !',
+            'message' => 'Votre �tablissement/service a �t� publi� avec succ�s !',
             'data' => $decouverte
         ], 201);
     }
 
-    // 4. (PROTÉGÉ) Récupérer uniquement les publications de l'utilisateur connecté
+    // 4. (PROT�G�) R�cup�rer uniquement les publications de l'utilisateur connect�
     public function myDecouvertes(Request $request)
     {
         $decouvertes = Decouverte::where('user_id', $request->user()->id)->latest()->get();
@@ -100,7 +102,7 @@ class DecouverteController extends Controller
         ]);
     }
 
-    // 5. (PROTÉGÉ) Supprimer sa publication
+    // 5. (PROT�G�) Supprimer sa publication
     public function destroy(Request $request, $id)
     {
         $decouverte = Decouverte::where('user_id', $request->user()->id)->find($id);
@@ -108,7 +110,7 @@ class DecouverteController extends Controller
         if (!$decouverte) {
             return response()->json([
                 'success' => false,
-                'message' => 'Publication introuvable ou accès refusé.'
+                'message' => 'Publication introuvable ou acc�s refus�.'
             ], 404);
         }
 
@@ -116,18 +118,28 @@ class DecouverteController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Publication supprimée avec succès.'
+            'message' => 'Publication supprim�e avec succ�s.'
         ]);
     }
 
-    // (PROTÉGÉ) Modifier un établissement/artisan existant
+    // (PROT�G�) Modifier un �tablissement/artisan existant
     public function update(Request $request, $id)
     {
         $decouverte = Decouverte::where('user_id', $request->user()->id)->find($id);
 
         if (!$decouverte) {
-            return response()->json(['success' => false, 'message' => 'Publication introuvable ou accès refusé.'], 404);
+            return response()->json(['success' => false, 'message' => 'Publication introuvable ou acc�s refus�.'], 404);
         }
+
+        $request->validate([
+            'nom' => 'sometimes|required|string|max:255',
+            'categorie' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'commune' => 'sometimes|required|string|max:255',
+            'telephone' => 'sometimes|required|string|max:30',
+            'images' => 'sometimes|array|max:20',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:4096',
+        ]);
 
         $decouverte->nom = $request->nom ?? $decouverte->nom;
         $decouverte->categorie = $request->categorie ?? $decouverte->categorie;
@@ -151,7 +163,7 @@ class DecouverteController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Établissement modifié. Il est en attente de validation.',
+            'message' => '�tablissement modifi�. Il est en attente de validation.',
             'data' => $decouverte
         ]);
     }

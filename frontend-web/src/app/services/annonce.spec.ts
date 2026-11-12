@@ -1,12 +1,14 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { Annonce } from './annonce';
+import { AnnonceService as Annonce } from './annonce';
 
 describe('Annonce', () => {
   let service: Annonce;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     service = TestBed.inject(Annonce);
   });
 

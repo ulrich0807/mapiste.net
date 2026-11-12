@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -12,7 +13,7 @@ export interface PaymentInitiation {
   providedIn: 'root'
 })
 export class PaymentService {
-  private apiUrl = 'http://127.0.0.1:8000/api/payment/initiate';
+  private apiUrl = `${environment.apiUrl}/payment/initiate`;
 
   constructor(private http: HttpClient) { }
 

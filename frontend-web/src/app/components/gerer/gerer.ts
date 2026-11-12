@@ -21,23 +21,23 @@ export class Gerer implements OnInit {
   erreurMessage = '';
   successMessage = '';
 
-  // --- Données Immobilier ---
+  // --- Donn�es Immobilier ---
   annonces: any[] = [];
 
-  // --- Données Annuaire (Découvertes) ---
+  // --- Donn�es Annuaire (D�couvertes) ---
   decouvertes: any[] = [];
   afficherFormulaireLieu = false;
   chargementFormulaire = false;
 
-  // --- Données Visites ---
+  // --- Donn�es Visites ---
   demandesVisites: any[] = [];
   mesVisites: any[] = [];
   
-  // VARIABLES POUR LE MODE ÉDITION (Annuaire)
+  // VARIABLES POUR LE MODE �DITION (Annuaire)
   modeEditionLieu = false;
   idLieuEnEdition: number | null = null;
   
-  // Modèle du formulaire
+  // Mod�le du formulaire
   nouveauLieu = {
     nom: '',
     categorie: 'restaurant',
@@ -98,8 +98,8 @@ export class Gerer implements OnInit {
     this.visiteService.changerStatut(id, statut).subscribe({
       next: (res) => {
         if (res.success) {
-          this.successMessage = 'Statut mis à jour avec succès.';
-          this.chargerVisites(); // Recharger les données
+          this.successMessage = 'Statut mis � jour avec succ�s.';
+          this.chargerVisites(); // Recharger les donn�es
           setTimeout(() => this.successMessage = '', 3000);
         }
       }
@@ -141,11 +141,11 @@ export class Gerer implements OnInit {
   }
 
   supprimerAnnonce(id: number) {
-    if (confirm('Voulez-vous vraiment supprimer cette annonce immobilière ?')) {
+    if (confirm('Voulez-vous vraiment supprimer cette annonce immobili�re ?')) {
       this.annonceService.supprimerAnnonce(id).subscribe({
         next: (res) => {
           if (res.success) {
-            this.successMessage = 'Annonce supprimée avec succès.';
+            this.successMessage = 'Annonce supprim�e avec succ�s.';
             this.chargerMesAnnonces();
             setTimeout(() => this.successMessage = '', 3000);
           }
@@ -155,7 +155,7 @@ export class Gerer implements OnInit {
   }
 
   boosterAnnonce(id: number) {
-    if (confirm("Êtes-vous sûr de vouloir mettre cette annonce à la une pour 5000 FCFA ?")) {
+    if (confirm("�tes-vous s�r de vouloir mettre cette annonce � la une pour 5000 FCFA ?")) {
       const paymentData: PaymentInitiation = {
         type: 'boost',
         amount: 5000,
@@ -166,8 +166,8 @@ export class Gerer implements OnInit {
         next: (res: any) => {
           alert('Redirection vers la page de paiement : ' + res.payment_url);
         },
-        error: () => {
-          this.erreurMessage = "Erreur lors de l'initiation du paiement.";
+        error: (err) => {
+          this.erreurMessage = err.error?.message || "Erreur lors de l'initiation du paiement.";
           setTimeout(() => this.erreurMessage = '', 3000);
         }
       });
@@ -175,7 +175,7 @@ export class Gerer implements OnInit {
   }
 
   // ==========================================
-  // SECTION DÉCOUVERTE (ANNUAIRE)
+  // SECTION D�COUVERTE (ANNUAIRE)
   // ==========================================
   chargerMesDecouvertes() {
     this.decouverteService.getMesDecouvertes().subscribe({
@@ -196,11 +196,11 @@ export class Gerer implements OnInit {
   }
 
   supprimerDecouverte(id: number) {
-    if (confirm('Voulez-vous vraiment supprimer cet établissement ?')) {
+    if (confirm('Voulez-vous vraiment supprimer cet �tablissement ?')) {
       this.decouverteService.supprimerDecouverte(id).subscribe({
         next: (res) => {
           if (res.success) {
-            this.successMessage = 'Établissement supprimé avec succès.';
+            this.successMessage = '�tablissement supprim� avec succ�s.';
             this.chargerMesDecouvertes();
             setTimeout(() => this.successMessage = '', 3000);
           }
@@ -209,9 +209,9 @@ export class Gerer implements OnInit {
     }
   }
 
-  // --- Gestion du Formulaire (Ajout & Édition) ---
+  // --- Gestion du Formulaire (Ajout & �dition) ---
   
-  // NOUVEAU : Pré-remplir le formulaire pour la modification
+  // NOUVEAU : Pr�-remplir le formulaire pour la modification
   modifierDecouverte(item: any) {
     this.modeEditionLieu = true;
     this.idLieuEnEdition = item.id;
@@ -272,7 +272,7 @@ export class Gerer implements OnInit {
       formData.append('images[]', file);
     });
 
-    // On vérifie si on est en mode création ou édition
+    // On v�rifie si on est en mode cr�ation ou �dition
     const requete$ = this.modeEditionLieu && this.idLieuEnEdition 
       ? this.decouverteService.updateDecouverte(this.idLieuEnEdition, formData)
       : this.decouverteService.creerDecouverte(formData);
@@ -281,9 +281,9 @@ export class Gerer implements OnInit {
       next: (res: any) => {
         this.chargementFormulaire = false;
         if (res.success) {
-          this.successMessage = this.modeEditionLieu ? 'Fiche modifiée avec succès !' : 'Fiche créée avec succès !';
+          this.successMessage = this.modeEditionLieu ? 'Fiche modifi�e avec succ�s !' : 'Fiche cr��e avec succ�s !';
           this.annulerEditionLieu();
-          this.chargerMesDecouvertes(); // Rafraîchir la liste
+          this.chargerMesDecouvertes(); // Rafra�chir la liste
           setTimeout(() => this.successMessage = '', 3000);
         } else {
           this.erreurMessage = res.message;

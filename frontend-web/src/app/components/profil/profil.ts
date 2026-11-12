@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth';
@@ -13,7 +15,8 @@ import Swal from 'sweetalert2';
   templateUrl: './profil.html',
   styleUrls: ['./profil.css']
 })
-export class Profil implements OnInit {
+export class Profil implements OnInit, OnDestroy {
+  private destroyed$ = new Subject<void>();
   user: any = null;
   activeTab: 'infos' | 'favoris' | 'visites' = 'infos';
   
@@ -26,23 +29,34 @@ export class Profil implements OnInit {
   selectedAvatar: File | null = null;
   avatarPreview: string | null = null;
   isLoading = false;
+  currentPassword = '';
+  emailCode = '';
+  emailChangeError = '';
+  emailChangeBusy = false;
 
   constructor(
     private authService: AuthService,
     private annonceService: AnnonceService,
-    private visiteService: VisiteService
+    private visiteService: VisiteService,
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.authService.user$.subscribe(user => {
+    this.authService.user$.pipe(takeUntil(this.destroyed$)).subscribe(user => {
+      this.user = user;
       if (user) {
-        this.user = user;
         this.initEditForm();
       }
     });
   }
 
+  ngOnDestroy() {
+    this.destroyed$.next();
+    this.destroyed$.complete();
+  }
+
   initEditForm() {
+    this.currentPassword = '';
     this.editForm = {
       name: this.user.name,
       email: this.user.email,
@@ -70,11 +84,13 @@ export class Profil implements OnInit {
   }
 
   saveProfile() {
+    if (this.isLoading || this.emailChangeBusy) return;
     this.isLoading = true;
     const formData = new FormData();
     formData.append('name', this.editForm.name);
     formData.append('email', this.editForm.email);
     formData.append('phone', this.editForm.phone);
+    if (this.currentPassword) formData.append('current_password', this.currentPassword);
     if (this.selectedAvatar) {
       formData.append('avatar', this.selectedAvatar);
     }
@@ -84,14 +100,62 @@ export class Profil implements OnInit {
         this.isLoading = false;
         if (res.success) {
           this.isEditing = false;
-          Swal.fire('Succès', 'Profil mis à jour avec succès !', 'success');
+          this.currentPassword = '';
+          this.emailCode = '';
+          this.emailChangeError = '';
+          Swal.fire('Succ�s', res.message || 'Profil mis � jour avec succ�s !', 'success');
         }
       },
       error: (err) => {
         this.isLoading = false;
-        Swal.fire('Erreur', 'Erreur lors de la mise à jour : ' + (err.error.message || ""), 'error');
+        Swal.fire('Erreur', err.error?.message || 'Impossible de mettre � jour le profil.', 'error');
       }
     });
+  }
+
+  confirmEmail() {
+    if (this.emailChangeBusy || this.isLoading) return;
+    if (!/^[0-9]{6}$/.test(this.emailCode)) {
+      this.emailChangeError = 'Saisissez le code � six chiffres re�u par e-mail.';
+      return;
+    }
+    this.emailChangeBusy = true;
+    this.emailChangeError = '';
+    this.authService.confirmEmailChange(this.emailCode).subscribe({
+      next: (response) => {
+        this.emailChangeBusy = false;
+        this.emailCode = '';
+        void Swal.fire('Adresse confirm�e', response.message, 'success');
+        void this.router.navigate(['/auth']);
+      },
+      error: (err) => {
+        this.emailChangeBusy = false;
+        this.emailChangeError = err.error?.message || 'Confirmation impossible. R�essayez.';
+      }
+    });
+  }
+
+  cancelEmail() {
+    if (this.emailChangeBusy || this.isLoading) return;
+    this.emailChangeBusy = true;
+    this.authService.cancelEmailChange().subscribe({
+      next: () => {
+        this.emailChangeBusy = false;
+        this.emailCode = '';
+        this.emailChangeError = '';
+      },
+      error: (err) => {
+        this.emailChangeBusy = false;
+        this.emailChangeError = err.error?.message || 'Annulation impossible. R�essayez.';
+      }
+    });
+  }
+
+  resendEmailCode() {
+    if (this.emailChangeBusy || !this.user?.pending_email) return;
+    this.initEditForm();
+    this.editForm.email = this.user.pending_email;
+    this.isEditing = true;
   }
 
   switchTab(tab: 'infos' | 'favoris' | 'visites') {

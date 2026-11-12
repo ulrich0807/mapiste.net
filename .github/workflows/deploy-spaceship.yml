@@ -1,0 +1,94 @@
+name: Deploiement MACAZ sur Spaceship
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - backend-api/**
+      - frontend-web/**
+      - .github/workflows/deploy-spaceship.yml
+      - .github/scripts/deploy-spaceship.sh
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macaz-production
+  cancel-in-progress: false
+
+jobs:
+  backend:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.MACAZ_AUTO_DEPLOY == 'true')
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        shell: bash
+        working-directory: backend-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, pdo_sqlite, sqlite3, gd, zip
+          tools: composer:v2
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: |
+          cp .env.example .env
+          php artisan key:generate --no-interaction
+          php artisan test
+          rm .env
+          composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
+      - run: |
+          git archive HEAD backend-api | tar -xf - -C "$RUNNER_TEMP"
+          cp -a vendor "$RUNNER_TEMP/backend-api/"
+          tar -czf "$RUNNER_TEMP/macaz-laravel.tar.gz" -C "$RUNNER_TEMP/backend-api" .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macaz-laravel
+          path: ${{ runner.temp }}/macaz-laravel.tar.gz
+          if-no-files-found: error
+
+  frontend:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || vars.MACAZ_AUTO_DEPLOY == 'true')
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend-web/package-lock.json
+      - run: npm ci
+      - run: npm test -- --watch=false
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macaz-angular
+          path: frontend-web/dist/frontend-web/browser/
+          if-no-files-found: error
+
+  deploy:
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: macaz-laravel
+          path: ${{ runner.temp }}/macaz
+      - uses: actions/download-artifact@v4
+        with:
+          name: macaz-angular
+          path: ${{ runner.temp }}/macaz/angular
+      - run: bash .github/scripts/deploy-spaceship.sh
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.MACAZ_SSH_PRIVATE_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.MACAZ_SSH_PASSPHRASE }}
+          SSH_KNOWN_HOSTS: ${{ secrets.MACAZ_SSH_KNOWN_HOSTS }}
