@@ -1,0 +1,59 @@
+name: Verification Spaceship MACAZ
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: production
+    steps:
+      - name: Verifier SSH et les outils serveur
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.MACAZ_SSH_PRIVATE_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.MACAZ_SSH_PASSPHRASE }}
+          SSH_KNOWN_HOSTS: ${{ secrets.MACAZ_SSH_KNOWN_HOSTS }}
+        run: |
+          : "${SSH_PRIVATE_KEY:?Secret MACAZ_SSH_PRIVATE_KEY manquant}"
+          : "${SSH_KEY_PASSPHRASE:?Secret MACAZ_SSH_PASSPHRASE manquant}"
+          : "${SSH_KNOWN_HOSTS:?Secret MACAZ_SSH_KNOWN_HOSTS manquant}"
+
+          umask 077
+          ssh_dir=$(mktemp -d)
+          trap 'rm -rf -- "$ssh_dir"' EXIT
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$ssh_dir/key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > "$ssh_dir/known_hosts"
+          cat > "$ssh_dir/askpass" <<'ASKPASS'
+          #!/bin/sh
+          printf '%s\n' "$SSH_KEY_PASSPHRASE"
+          ASKPASS
+          chmod 700 "$ssh_dir/askpass"
+
+          eval "$(ssh-agent -s)" > /dev/null
+          trap 'ssh-agent -k > /dev/null; rm -rf -- "$ssh_dir"' EXIT
+          SSH_ASKPASS="$ssh_dir/askpass" SSH_ASKPASS_REQUIRE=force ssh-add "$ssh_dir/key" < /dev/null
+          unset SSH_PRIVATE_KEY SSH_KEY_PASSPHRASE
+
+          ssh -T -i "$ssh_dir/key" -p 21098 \
+            -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$ssh_dir/known_hosts" \
+            wfbnqswlws@66.29.148.119 'sh -s' <<'REMOTE'
+          set -eu
+          web_root=/home/wfbnqswlws/macaz.net
+          test -d "$web_root" && test -w "$web_root" || {
+            printf 'Racine web absente ou non accessible en ecriture\n' >&2
+            exit 1
+          }
+          printf 'Racine web accessible : %s\n' "$web_root"
+          php -v
+          php -m
+          for tool in composer rsync; do
+            command -v "$tool" || printf '%s absent du PATH\n' "$tool"
+          done
+          REMOTE
+
