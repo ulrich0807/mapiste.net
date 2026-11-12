@@ -41,7 +41,7 @@ jobs:
           rm .env
           composer install --no-dev --no-interaction --prefer-dist --no-progress --optimize-autoloader
       - run: |
-          git archive HEAD backend-api | tar -xf - -C "$RUNNER_TEMP"
+          git -C "$GITHUB_WORKSPACE" archive HEAD backend-api | tar -xf - -C "$RUNNER_TEMP"
           cp -a vendor "$RUNNER_TEMP/backend-api/"
           tar -czf "$RUNNER_TEMP/macaz-laravel.tar.gz" -C "$RUNNER_TEMP/backend-api" .
       - uses: actions/upload-artifact@v4
