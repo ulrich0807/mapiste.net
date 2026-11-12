@@ -174,8 +174,9 @@ export class MapView implements OnInit, OnDestroy {
   private initMap(): void {
     this.map = L.map('map', { zoomControl: false }).setView([7.539989, -5.547080], 6);
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
     setTimeout(() => { this.map.invalidateSize(); }, 500);
   }

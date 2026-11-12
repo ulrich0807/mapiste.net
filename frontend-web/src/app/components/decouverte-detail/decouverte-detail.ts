@@ -73,9 +73,9 @@ export class DecouverteDetail implements OnInit, OnDestroy {
     // Création de la carte (Centrée sur Abidjan par défaut)
     this.map = L.map('map-lieu').setView([5.3599, -4.0083], 12);
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 18,
-      attribution: '© OpenStreetMap contributors, © CARTO'
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(this.map);
 
     // Ajout d'un marqueur représentatif
