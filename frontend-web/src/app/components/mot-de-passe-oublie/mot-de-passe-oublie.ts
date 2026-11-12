@@ -33,7 +33,7 @@ export class MotDePasseOublie {
         this.erreur = err.status === 429
           ? 'Trop de demandes. Patientez avant de reessayer.'
           : err.status === 0 ? 'Connexion au serveur impossible.'
-          : err.error?.message || 'Impossible d'envoyer le lien. Reessayez plus tard.';
+          : err.error?.message || 'Impossible d’envoyer le lien. Réessayez plus tard.';
       }
     });
   }
