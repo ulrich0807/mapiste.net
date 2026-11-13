@@ -1,0 +1,231 @@
+:host {
+  display: block;
+  color: #17202d;
+}
+
+.discovery {
+  width: min(100% - 2rem, 76rem);
+  margin-inline: auto;
+  padding-block: clamp(7rem, 12vw, 9rem) 5rem;
+}
+
+.discovery-intro {
+  padding: clamp(1.75rem, 5vw, 3.5rem);
+  border-radius: 1.5rem;
+  background: #17202d;
+  color: #fff;
+}
+
+.discovery-intro h1 {
+  max-width: 19ch;
+  margin: 0 0 .75rem;
+  font-size: clamp(2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+.discovery-intro p {
+  max-width: 55ch;
+  margin: 0;
+  color: #e2e8f0;
+  font-size: clamp(1rem, 2vw, 1.15rem);
+}
+
+.discovery-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+  margin-block: 1rem 2.75rem;
+  padding: 1.25rem;
+  border: 1px solid #dce2e7;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.discovery-filters label {
+  display: block;
+  margin-bottom: .4rem;
+  font-size: .875rem;
+  font-weight: 750;
+}
+
+.discovery-filters input,
+.discovery-filters select {
+  width: 100%;
+  min-height: 3rem;
+  padding: .55rem .8rem;
+  border: 1px solid #cbd3dc;
+  border-radius: .65rem;
+  color: #17202d;
+  background: #fff;
+}
+
+.discovery-button {
+  min-height: 3rem;
+  padding: .55rem 1rem;
+  border: 1px solid transparent;
+  border-radius: .65rem;
+  background: #a53e08;
+  color: #fff;
+  font-weight: 750;
+}
+
+.discovery-button:hover {
+  background: #823307;
+}
+
+.discovery-button-outline {
+  border-color: #a53e08;
+  background: #fff;
+  color: #8c3508;
+}
+
+.discovery-button-outline:hover {
+  background: #fff3e8;
+}
+
+.discovery-button:disabled {
+  opacity: .6;
+}
+
+:where(input, select, button, a):focus-visible {
+  outline: 3px solid #b4470d;
+  outline-offset: 3px;
+}
+
+.discovery-results h2 {
+  margin: 0 0 1rem;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -.025em;
+}
+
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.discovery-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dce2e7;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 8px 24px #17202d0a;
+}
+
+.discovery-image {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #f1e8df;
+}
+
+.discovery-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.discovery-category {
+  position: absolute;
+  top: .8rem;
+  left: .8rem;
+  padding: .35rem .65rem;
+  border-radius: 999px;
+  background: #fff4e9;
+  color: #873807;
+  font-size: .8rem;
+  font-weight: 750;
+}
+
+.discovery-card-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.2rem;
+}
+
+.discovery-location {
+  margin: 0 0 .35rem;
+  color: #565f6c;
+  font-size: .9rem;
+}
+
+.discovery-location i,
+.discovery-card-footer a {
+  color: #933b0a;
+}
+
+.discovery-card h3 {
+  margin: 0 0 .5rem;
+  font-size: 1.18rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.discovery-description {
+  margin: 0 0 1rem;
+  color: #565f6c;
+  overflow-wrap: anywhere;
+}
+
+.discovery-card-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  margin-top: auto;
+  padding-top: .8rem;
+  border-top: 1px solid #e8ecf0;
+  font-size: .9rem;
+}
+
+.discovery-card-footer a {
+  margin-left: auto;
+  padding-block: .35rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.discovery-card-footer a:hover {
+  text-decoration: underline;
+}
+
+.discovery-state,
+.discovery-more {
+  margin: 1rem 0 0;
+  text-align: center;
+}
+
+.discovery-state {
+  padding: 2rem 1rem;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.discovery-state p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 960px) {
+  .discovery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .discovery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discovery-filters {
+    grid-template-columns: 1fr;
+    margin-bottom: 2rem;
+  }
+}
